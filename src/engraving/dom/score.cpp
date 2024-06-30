@@ -147,10 +147,14 @@ static void markInstrumentsAsPrimary(std::vector<Part*>& parts)
 //   Score
 //---------------------------------------------------------
 
-Score::Score()
-    : EngravingObject(ElementType::SCORE, nullptr), m_headersText(MAX_HEADERS, nullptr)
-    , m_footersText(MAX_FOOTERS, nullptr), m_selection(this)
+Score::Score(const modularity::ContextPtr& iocCtx)
+    : EngravingObject(ElementType::SCORE, nullptr), muse::Injectable(iocCtx)
+    , m_headersText(MAX_HEADERS, nullptr), m_footersText(MAX_FOOTERS, nullptr), m_selection(this)
 {
+    if (elementsProvider()) {
+        elementsProvider()->reg(this);
+    }
+
     Score::validScores.insert(this);
     m_masterScore = 0;
 
@@ -172,7 +176,7 @@ Score::Score()
 }
 
 Score::Score(MasterScore* parent, bool forcePartStyle /* = true */)
-    : Score{}
+    : Score{parent->iocContext()}
 {
     Score::validScores.insert(this);
     m_masterScore = parent;
@@ -181,8 +185,6 @@ Score::Score(MasterScore* parent, bool forcePartStyle /* = true */)
     } else {
         // inherit most style settings from parent
         m_style = parent->style();
-
-        checkChordList();
 
         static const Sid styles[] = {
             Sid::pageWidth,
@@ -211,6 +213,7 @@ Score::Score(MasterScore* parent, bool forcePartStyle /* = true */)
     }
     // update style values
     m_style.precomputeValues();
+    checkChordList();
     m_synthesizerState = parent->m_synthesizerState;
     m_mscVersion = parent->m_mscVersion;
     createPaddingTable();
@@ -748,15 +751,9 @@ void Score::setMarkIrregularMeasures(bool v)
     m_markIrregularMeasures = v;
 }
 
-void Score::updateShowAnchors(staff_idx_t staffIdx, const Fraction& startTick, const Fraction& endTick)
+void Score::setShowAnchors(const ShowAnchors& showAnchors)
 {
-    m_showAnchors.staffIdx = staffIdx;
-    if (m_showAnchors.startTick == Fraction(-1, 1) || startTick < m_showAnchors.startTick) {
-        m_showAnchors.startTick = startTick;
-    }
-    if (m_showAnchors.endTick == Fraction(-1, 1) || endTick > m_showAnchors.endTick) {
-        m_showAnchors.endTick = endTick;
-    }
+    m_showAnchors = showAnchors;
 }
 
 //---------------------------------------------------------
@@ -1508,6 +1505,7 @@ void Score::addElement(EngravingItem* element)
     break;
 
     case ElementType::DYNAMIC:
+        toDynamic(element)->checkMeasureBoundariesAndMoveIfNeed();
         setPlaylistDirty();
         break;
 

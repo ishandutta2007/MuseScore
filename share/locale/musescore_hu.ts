@@ -3116,7 +3116,7 @@ Alapértelmezés szerint a jobb szélük lesz egy vonalhoz illesztve. Ezzel a ka
     <message>
         <location filename="../../src/notation/view/widgets/editstyle.ui" line="11373"/>
         <source>Avoid barlines</source>
-        <translation>Kerülje a ütővonalakat</translation>
+        <translation>Kerülje az ütemvonalakat</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editstyle.ui" line="11510"/>
@@ -18910,7 +18910,7 @@ felismerése</translation>
     <message>
         <location filename="../../src/inspector/view/qml/MuseScore/Inspector/notation/dynamics/DynamicsSettings.qml" line="74"/>
         <source>Avoid barlines</source>
-        <translation>Kerülje a ütővonalakat</translation>
+        <translation>Kerülje a ütemvonalakat</translation>
     </message>
     <message>
         <location filename="../../src/inspector/view/qml/MuseScore/Inspector/notation/dynamics/DynamicsSettings.qml" line="106"/>
@@ -26599,7 +26599,7 @@ palettafájl írása sikertelen:</translation>
     <message>
         <location filename="../../src/project/qml/MuseScore/Project/ExportDialog.qml" line="128"/>
         <source>Export settings</source>
-        <translation>Beállítások exportálása</translation>
+        <translation>Exportálási beállítások</translation>
     </message>
     <message>
         <location filename="../../src/project/qml/MuseScore/Project/ExportDialog.qml" line="154"/>

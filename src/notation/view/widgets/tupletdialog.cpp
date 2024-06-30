@@ -34,7 +34,7 @@ using namespace muse::actions;
 //---------------------------------------------------------
 
 TupletDialog::TupletDialog(QWidget* parent)
-    : QDialog(parent)
+    : QDialog(parent), muse::Injectable(muse::iocCtxForQWidget(this))
 {
     setObjectName("TupletDialog");
     setupUi(this);
@@ -51,14 +51,6 @@ TupletDialog::TupletDialog(QWidget* parent)
     //! NOTE: It is necessary for the correct start of navigation in the dialog
     setFocus();
 }
-
-#ifdef MU_QT5_COMPAT
-TupletDialog::TupletDialog(const TupletDialog& other)
-    : QDialog(other.parentWidget())
-{
-}
-
-#endif
 
 //---------------------------------------------------------
 //   defaultToStyleSettings

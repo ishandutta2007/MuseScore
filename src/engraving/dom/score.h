@@ -213,16 +213,28 @@ enum class PlayMode : char {
 };
 
 struct ShowAnchors {
-    staff_idx_t staffIdx;
-    Fraction startTick;
-    Fraction endTick;
+    ShowAnchors() = default;
+    ShowAnchors(voice_idx_t vIdx, staff_idx_t stfIdx, const Fraction& sTickMain, const Fraction& eTickMain,
+                const Fraction& sTickExt, const Fraction& eTickExt)
+        : voiceIdx(vIdx), staffIdx(stfIdx), startTickMainRegion(sTickMain), endTickMainRegion(eTickMain),
+        startTickExtendedRegion(sTickExt), endTickExtendedRegion(eTickExt) {}
 
     void reset()
     {
+        voiceIdx = muse::nidx;
         staffIdx = muse::nidx;
-        startTick = Fraction(-1, 1);
-        endTick = Fraction(-1, 1);
+        startTickMainRegion = Fraction(-1, 1);
+        endTickMainRegion = Fraction(-1, 1);
+        startTickExtendedRegion = Fraction(-1, 1);
+        endTickExtendedRegion = Fraction(-1, 1);
     }
+
+    voice_idx_t voiceIdx = muse::nidx;
+    staff_idx_t staffIdx = muse::nidx;
+    Fraction startTickMainRegion = Fraction(-1, 1);
+    Fraction endTickMainRegion = Fraction(-1, 1);
+    Fraction startTickExtendedRegion = Fraction(-1, 1);
+    Fraction endTickExtendedRegion = Fraction(-1, 1);
 };
 
 //---------------------------------------------------------------------------------------
@@ -251,18 +263,19 @@ struct ShowAnchors {
 //    a Score has always an associated MasterScore
 //---------------------------------------------------------------------------------------
 
-class Score : public EngravingObject
+class Score : public EngravingObject, public muse::Injectable
 {
     OBJECT_ALLOCATOR(engraving, Score)
     DECLARE_CLASSOF(ElementType::SCORE)
 
-    Inject<muse::draw::IImageProvider> imageProvider;
-    Inject<IEngravingConfiguration> configuration;
-    Inject<IEngravingFontsProvider> engravingFonts;
-    Inject<muse::IApplication> application;
+    muse::Inject<muse::draw::IImageProvider> imageProvider = { this };
+    muse::Inject<IEngravingConfiguration> configuration = { this };
+    muse::Inject<IEngravingFontsProvider> engravingFonts = { this };
+    muse::Inject<muse::IApplication> application = { this };
+    muse::Inject<IEngravingElementsProvider> elementsProvider = { this };
 
     // internal
-    Inject<rendering::IScoreRenderer> renderer;
+    muse::Inject<rendering::IScoreRenderer> renderer = { this };
 
 public:
     Score(const Score&) = delete;
@@ -571,13 +584,13 @@ public:
     void setShowInstrumentNames(bool v) { m_showInstrumentNames = v; }
 
     void hideAnchors() { m_showAnchors.reset(); }
-    void updateShowAnchors(staff_idx_t staffIdx, const Fraction& startTick, const Fraction& endTick);
+    void setShowAnchors(const ShowAnchors& showAnchors);
     const ShowAnchors& showAnchors() const { return m_showAnchors; }
 
     void print(muse::draw::Painter* printer, int page);
     ChordRest* getSelectedChordRest() const;
     std::set<ChordRest*> getSelectedChordRests() const;
-    void getSelectedChordRest2(ChordRest** cr1, ChordRest** cr2) const;
+    void getSelectedStartEndChordRests(ChordRest*& cr1, ChordRest*& cr2) const;
 
     void select(EngravingItem* item, SelectType = SelectType::SINGLE, staff_idx_t staff = 0);
     void select(const std::vector<EngravingItem*>& items, SelectType = SelectType::SINGLE, staff_idx_t staff = 0);
@@ -642,7 +655,7 @@ public:
 
     ChordList* chordList() { return &m_chordList; }
     const ChordList* chordList() const { return &m_chordList; }
-    void checkChordList() { m_chordList.checkChordList(style()); }
+    void checkChordList();
 
     MStyle& style() { return m_style; }
     const MStyle& style() const { return m_style; }
@@ -893,11 +906,9 @@ public:
     void addUnmanagedSpanner(Spanner*);
     void removeUnmanagedSpanner(Spanner*);
 
-    void addHairpinToChordRest(Hairpin* hairpin, ChordRest* chordRest);
+    Hairpin* addHairpin(HairpinType type, ChordRest* cr1, ChordRest* cr2 = nullptr);
+    void addHairpin(Hairpin* hairpin, ChordRest* cr1, ChordRest* cr2 = nullptr);
     void addHairpinToDynamic(Hairpin* hairpin, Dynamic* dynamic);
-
-    Hairpin* addHairpin(HairpinType, const Fraction& tickStart, const Fraction& tickEnd, track_idx_t track);
-    Hairpin* addHairpin(HairpinType, ChordRest* cr1, ChordRest* cr2 = nullptr);
 
     ChordRest* findCR(Fraction tick, track_idx_t track) const;
     ChordRest* findChordRestEndingBeforeTickInStaff(const Fraction& tick, staff_idx_t staffIdx) const;
@@ -991,7 +1002,7 @@ public:
 protected:
 
     friend class MasterScore;
-    Score();
+    Score(const muse::modularity::ContextPtr& iocCtx);
     Score(MasterScore*, bool forcePartStyle = true);
     Score(MasterScore*, const MStyle&);
 
@@ -1041,8 +1052,8 @@ private:
     void resetTempoRange(const Fraction& tick1, const Fraction& tick2);
     void rebuildTempoAndTimeSigMaps(Measure* m, std::optional<BeatsPerSecond>& tempoPrimo);
 
-    void deleteSpannersFromRange(const Fraction& t1, const Fraction& t2, track_idx_t trackStart, track_idx_t trackEnd,
-                                 const SelectionFilter& filter);
+    void deleteOrShortenOutSpannersFromRange(const Fraction& t1, const Fraction& t2, track_idx_t trackStart, track_idx_t trackEnd,
+                                             const SelectionFilter& filter);
     void deleteAnnotationsFromRange(Segment* segStart, Segment* segEnd, track_idx_t trackStart, track_idx_t trackEnd,
                                     const SelectionFilter& filter);
     std::vector<ChordRest*> deleteRange(Segment* segStart, Segment* segEnd, track_idx_t trackStart, track_idx_t trackEnd,

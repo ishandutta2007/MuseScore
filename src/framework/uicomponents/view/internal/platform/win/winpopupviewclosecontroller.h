@@ -33,15 +33,11 @@ class WinPopupViewCloseController : public PopupViewCloseController, public QAbs
     Q_OBJECT
 
 public:
-    explicit WinPopupViewCloseController(QObject* parent = nullptr);
+    explicit WinPopupViewCloseController(const muse::modularity::ContextPtr& iocCtx, QObject* parent = nullptr);
     ~WinPopupViewCloseController() override = default;
 
 private:
-#ifdef MU_QT5_COMPAT
-    bool nativeEventFilter(const QByteArray& eventType, void* message, long* result) override;
-#else
     bool nativeEventFilter(const QByteArray& eventType, void* message, qintptr* result) override;
-#endif
 
     void doUpdateEventFilters() override;
 };

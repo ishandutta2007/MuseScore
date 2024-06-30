@@ -127,8 +127,6 @@
           </Text>
         <Text>
           <style>composer</style>
-          <align>right,top</align>
-          <offset x="0" y="17.4247"/>
           <text>Henry Ives</text>
           </Text>
         </VBox>
@@ -463,9 +461,6 @@
           <Rest>
             <durationType>half</durationType>
             </Rest>
-          <BarLine>
-            <subtype>end</subtype>
-            </BarLine>
           <Spanner type="Pedal">
             <prev>
               <location>
@@ -474,6 +469,17 @@
                 </location>
               </prev>
             </Spanner>
+          <Spanner type="Pedal">
+            <prev>
+              <location>
+                <measures>-2</measures>
+                <fractions>-1/1</fractions>
+                </location>
+              </prev>
+            </Spanner>
+          <BarLine>
+            <subtype>end</subtype>
+            </BarLine>
           </voice>
         </Measure>
       </Staff>

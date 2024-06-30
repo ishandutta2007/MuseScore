@@ -127,8 +127,6 @@
           </Text>
         <Text>
           <style>composer</style>
-          <align>right,top</align>
-          <offset x="0" y="17.4247"/>
           <text>Henry Ives</text>
           </Text>
         </VBox>
@@ -152,13 +150,14 @@
           <StaffText>
             <text>3rd time senza Invisalign</text>
             </StaffText>
+          <Expression>
+            <direction>down</direction>
+            <text><i>Cantabile</i></text>
+            </Expression>
           <Tempo>
             <tempo>2</tempo>
             <text><font size="12"/><b>Straight</b></text>
             </Tempo>
-          <Expression>
-            <text><i>Cantabile</i></text>
-            </Expression>
           <Beam>
             <StemDirection>down</StemDirection>
             <l1>44</l1>
@@ -312,9 +311,10 @@
               <tpc>11</tpc>
               </Note>
             </Chord>
-          <StaffText>
+          <PlayTechAnnotation>
+            <playTechType>mute</playTechType>
             <text>mute</text>
-            </StaffText>
+            </PlayTechAnnotation>
           <StaffText>
             <text>Staff Text</text>
             </StaffText>
@@ -345,9 +345,10 @@
               <tpc>13</tpc>
               </Note>
             </Chord>
-          <StaffText>
+          <PlayTechAnnotation>
+            <playTechType>open</playTechType>
             <text>open</text>
-            </StaffText>
+            </PlayTechAnnotation>
           <Chord>
             <BeamMode>mid</BeamMode>
             <durationType>16th</durationType>

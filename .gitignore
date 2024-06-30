@@ -68,3 +68,11 @@ VERSION
 temp_*
 
 *.local.cmake
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+.pdm-python
+
+**/_deps/*

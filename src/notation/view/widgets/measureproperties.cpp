@@ -45,7 +45,7 @@ using namespace muse::ui;
 static const int ITEM_ACCESSIBLE_TITLE_ROLE = Qt::UserRole + 1;
 
 MeasurePropertiesDialog::MeasurePropertiesDialog(QWidget* parent)
-    : QDialog(parent)
+    : QDialog(parent), muse::Injectable(muse::iocCtxForQWidget(this))
 {
     setObjectName("MeasureProperties");
     setupUi(this);
@@ -79,22 +79,14 @@ MeasurePropertiesDialog::MeasurePropertiesDialog(QWidget* parent)
     qApp->installEventFilter(this);
 }
 
-#ifdef MU_QT5_COMPAT
-MeasurePropertiesDialog::MeasurePropertiesDialog(const MeasurePropertiesDialog& dialog)
-    : MeasurePropertiesDialog(dialog.parentWidget())
-{
-}
-
-#endif
-
 void MeasurePropertiesDialog::initMeasure()
 {
     if (!m_notation) {
         return;
     }
 
-    INotationInteraction::HitElementContext context = m_notation->interaction()->hitElementContext();
-    mu::engraving::Measure* measure = mu::engraving::toMeasure(context.element);
+    INotationInteraction::HitElementContext ctx = m_notation->interaction()->hitElementContext();
+    mu::engraving::Measure* measure = mu::engraving::toMeasure(ctx.element);
 
     if (!measure) {
         INotationSelectionPtr selection = m_notation->interaction()->selection();

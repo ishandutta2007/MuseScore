@@ -167,6 +167,9 @@ QVariant PropertyValue::toQVariant() const
     case P_TYPE::TIE_PLACEMENT:    return static_cast<int>(value<TiePlacement>());
     case P_TYPE::LYRICS_DASH_SYSTEM_START_TYPE: return static_cast<int>(value<LyricsDashSystemStart>());
 
+    case P_TYPE::VOICE_APPLICATION: return static_cast<int>(value<VoiceApplication>());
+    case P_TYPE::AUTO_ON_OFF:       return static_cast<int>(value<AutoOnOff>());
+
     // Other
     case P_TYPE::GROUPS: {
         NOT_SUPPORTED;
@@ -268,6 +271,8 @@ PropertyValue PropertyValue::fromQVariant(const QVariant& v, P_TYPE type)
     case P_TYPE::SLUR_STYLE_TYPE:  return PropertyValue(SlurStyleType(v.toInt()));
     case P_TYPE::TIE_PLACEMENT:    return PropertyValue(TiePlacement(v.toInt()));
     case P_TYPE::LYRICS_DASH_SYSTEM_START_TYPE:    return PropertyValue(LyricsDashSystemStart(v.toInt()));
+    case P_TYPE::VOICE_APPLICATION: return PropertyValue(VoiceApplication(v.toInt()));
+    case P_TYPE::AUTO_ON_OFF:      return PropertyValue(AutoOnOff(v.toInt()));
 
     // Other
     case P_TYPE::GROUPS: {
@@ -277,26 +282,6 @@ PropertyValue PropertyValue::fromQVariant(const QVariant& v, P_TYPE type)
     }
 
     //! NOTE Try determinate type by QVariant type
-#ifdef MU_QT5_COMPAT
-    switch (v.type()) {
-    case QVariant::Invalid:     return PropertyValue();
-    case QVariant::Bool:        return PropertyValue(v.toBool());
-    case QVariant::Int:         return PropertyValue(v.toInt());
-    case QVariant::UInt:        return PropertyValue(v.toInt());
-    case QVariant::LongLong:    return PropertyValue(v.toInt());
-    case QVariant::ULongLong:   return PropertyValue(v.toInt());
-    case QVariant::Double:      return PropertyValue(v.toReal());
-    case QVariant::Char:        return PropertyValue(v.toInt());
-    case QVariant::String:      return PropertyValue(v.toString());
-    case QVariant::Size:        return PropertyValue(SizeF::fromQSizeF(QSizeF(v.toSize())));
-    case QVariant::SizeF:       return PropertyValue(SizeF::fromQSizeF(v.toSizeF()));
-    case QVariant::Point:       return PropertyValue(PointF::fromQPointF(QPointF(v.toPoint())));
-    case QVariant::PointF:      return PropertyValue(PointF::fromQPointF(v.toPointF()));
-    case QVariant::Color:       return PropertyValue(Color::fromQColor(v.value<QColor>()));
-    default:
-        break;
-    }
-#else
     switch (v.typeId()) {
     case QMetaType::UnknownType: return PropertyValue();
     case QMetaType::Bool:        return PropertyValue(v.toBool());
@@ -315,7 +300,6 @@ PropertyValue PropertyValue::fromQVariant(const QVariant& v, P_TYPE type)
     default:
         break;
     }
-#endif
 
     return PropertyValue();
 }

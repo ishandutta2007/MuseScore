@@ -176,7 +176,7 @@ void MuseSamplerWrapper::setupSound(const mpe::PlaybackSetupData& setupData)
         }
     }
 
-    m_sequencer.init(m_samplerLib, m_sampler, shared_from_this(), resolveDefaultPresetCode(m_instrument));
+    m_sequencer.init(m_samplerLib, m_sampler, this, resolveDefaultPresetCode(m_instrument));
 }
 
 void MuseSamplerWrapper::setupEvents(const mpe::PlaybackData& playbackData)
@@ -210,10 +210,6 @@ ms_Track MuseSamplerWrapper::addTrack()
     TRACEFUNC;
 
     IF_ASSERT_FAILED(m_samplerLib && m_sampler) {
-        return nullptr;
-    }
-
-    if (!m_samplerLib->supportsMultipleTracks() && !m_tracks.empty()) {
         return nullptr;
     }
 

@@ -34,17 +34,29 @@ static constexpr note_idx_t MIN_SUPPORTED_NOTE = 12; // MIDI equivalent for C0
 static constexpr mpe::pitch_level_t MAX_SUPPORTED_PITCH_LEVEL = mpe::pitchLevel(PitchClass::C, 8);
 static constexpr note_idx_t MAX_SUPPORTED_NOTE = 108; // MIDI equivalent for C8
 
-void FluidSequencer::init(const PlaybackSetupData& setupData, const std::optional<midi::Program>& programOverride)
+void FluidSequencer::init(const PlaybackSetupData& setupData, const std::optional<midi::Program>& programOverride,
+                          bool useDynamicEvents)
 {
     m_channels.init(setupData, programOverride);
+    m_useDynamicEvents = useDynamicEvents;
 }
 
 int FluidSequencer::currentExpressionLevel() const
 {
-    return expressionLevel(dynamicLevel(m_playbackPosition));
+    if (m_useDynamicEvents) {
+        return expressionLevel(dynamicLevel(m_playbackPosition));
+    }
+
+    return naturalExpressionLevel();
 }
 
-void FluidSequencer::updateOffStreamEvents(const mpe::PlaybackEventsMap& events, const PlaybackParamMap&)
+int FluidSequencer::naturalExpressionLevel() const
+{
+    static const int NATURAL_EXP_LVL = expressionLevel(dynamicLevelFromType(DynamicType::Natural));
+    return NATURAL_EXP_LVL;
+}
+
+void FluidSequencer::updateOffStreamEvents(const mpe::PlaybackEventsMap& events, const PlaybackParamList&)
 {
     m_offStreamEvents.clear();
 
@@ -56,10 +68,10 @@ void FluidSequencer::updateOffStreamEvents(const mpe::PlaybackEventsMap& events,
     updateOffSequenceIterator();
 }
 
-void FluidSequencer::updateMainStreamEvents(const mpe::PlaybackEventsMap& events, const mpe::DynamicLevelMap& dynamics,
-                                            const mpe::PlaybackParamMap&)
+void FluidSequencer::updateMainStreamEvents(const mpe::PlaybackEventsMap& events, const mpe::DynamicLevelLayers& dynamics,
+                                            const mpe::PlaybackParamLayers&)
 {
-    m_dynamicLevelMap = dynamics;
+    m_dynamicLevelLayers = dynamics;
 
     m_mainStreamEvents.clear();
     m_dynamicEvents.clear();
@@ -71,8 +83,10 @@ void FluidSequencer::updateMainStreamEvents(const mpe::PlaybackEventsMap& events
     updatePlaybackEvents(m_mainStreamEvents, events);
     updateMainSequenceIterator();
 
-    updateDynamicEvents(m_dynamicEvents, dynamics);
-    updateDynamicChangesIterator();
+    if (m_useDynamicEvents) {
+        updateDynamicEvents(m_dynamicEvents, dynamics);
+        updateDynamicChangesIterator();
+    }
 }
 
 muse::async::Channel<channel_t, Program> FluidSequencer::channelAdded() const
@@ -118,20 +132,22 @@ void FluidSequencer::updatePlaybackEvents(EventSequenceMap& destination, const m
 
             destination[timestampTo].emplace(std::move(noteOff));
 
-            appendControlSwitch(destination, noteEvent, PEDAL_CC_SUPPORTED_TYPES, 64);
+            appendControlSwitch(destination, noteEvent, PEDAL_CC_SUPPORTED_TYPES, midi::SUSTAIN_PEDAL_CONTROLLER);
             appendPitchBend(destination, noteEvent, BEND_SUPPORTED_TYPES, channelIdx);
         }
     }
 }
 
-void FluidSequencer::updateDynamicEvents(EventSequenceMap& destination, const mpe::DynamicLevelMap& changes)
+void FluidSequencer::updateDynamicEvents(EventSequenceMap& destination, const mpe::DynamicLevelLayers& changes)
 {
-    for (const auto& pair : changes) {
-        muse::midi::Event event(muse::midi::Event::Opcode::ControlChange, Event::MessageType::ChannelVoice10);
-        event.setIndex(muse::midi::EXPRESSION_CONTROLLER);
-        event.setData(expressionLevel(pair.second));
+    for (const auto& layer : changes) {
+        for (const auto& dynamic : layer.second) {
+            midi::Event event(muse::midi::Event::Opcode::ControlChange, Event::MessageType::ChannelVoice10);
+            event.setIndex(midi::EXPRESSION_CONTROLLER);
+            event.setData(expressionLevel(dynamic.second));
 
-        destination[pair.first].emplace(std::move(event));
+            destination[dynamic.first].emplace(std::move(event));
+        }
     }
 }
 
@@ -147,33 +163,33 @@ void FluidSequencer::appendControlSwitch(EventSequenceMap& destination, const mp
         }
     }
 
-    if (currentType != mpe::ArticulationType::Undefined) {
-        const ArticulationAppliedData& articulationData = noteEvent.expressionCtx().articulations.at(currentType);
-        const ArticulationMeta& articulationMeta = articulationData.meta;
-
-        midi::Event start(Event::Opcode::ControlChange, Event::MessageType::ChannelVoice10);
-        start.setIndex(midiControlIdx);
-        start.setData(127);
-
-        destination[noteEvent.arrangementCtx().actualTimestamp].emplace(std::move(start));
-
-        midi::Event end(Event::Opcode::ControlChange, Event::MessageType::ChannelVoice10);
-        end.setIndex(midiControlIdx);
-        end.setData(0);
-
-        destination[articulationMeta.timestamp + articulationMeta.overallDuration].emplace(std::move(end));
-    } else {
-        midi::Event cc(Event::Opcode::ControlChange, Event::MessageType::ChannelVoice10);
-        cc.setIndex(midiControlIdx);
-        cc.setData(0);
-
-        destination[noteEvent.arrangementCtx().actualTimestamp].emplace(std::move(cc));
+    if (currentType == mpe::ArticulationType::Undefined) {
+        return;
     }
+
+    const ArticulationAppliedData& articulationData = noteEvent.expressionCtx().articulations.at(currentType);
+    const ArticulationMeta& articulationMeta = articulationData.meta;
+
+    midi::Event start(Event::Opcode::ControlChange, Event::MessageType::ChannelVoice10);
+    start.setIndex(midiControlIdx);
+    start.setData(127);
+
+    destination[noteEvent.arrangementCtx().actualTimestamp].emplace(std::move(start));
+
+    midi::Event end(Event::Opcode::ControlChange, Event::MessageType::ChannelVoice10);
+    end.setIndex(midiControlIdx);
+    end.setData(0);
+
+    destination[articulationMeta.timestamp + articulationMeta.overallDuration].emplace(std::move(end));
 }
 
 void FluidSequencer::appendPitchBend(EventSequenceMap& destination, const mpe::NoteEvent& noteEvent,
                                      const mpe::ArticulationTypeSet& appliableTypes, const channel_t channelIdx)
 {
+    if (noteEvent.pitchCtx().pitchCurve.empty()) {
+        return;
+    }
+
     mpe::ArticulationType currentType = mpe::ArticulationType::Undefined;
 
     for (const mpe::ArticulationType type : appliableTypes) {
@@ -183,29 +199,22 @@ void FluidSequencer::appendPitchBend(EventSequenceMap& destination, const mpe::N
         }
     }
 
-    timestamp_t timestampFrom = noteEvent.arrangementCtx().actualTimestamp;
-    midi::Event event(Event::Opcode::PitchBend, Event::MessageType::ChannelVoice10);
-    event.setChannel(channelIdx);
-
-    if (currentType == mpe::ArticulationType::Undefined || noteEvent.pitchCtx().pitchCurve.empty()) {
-        event.setData(8192);
-        destination[timestampFrom].emplace(std::move(event));
+    if (currentType == mpe::ArticulationType::Undefined) {
         return;
     }
 
-    mpe::duration_t duration = noteEvent.arrangementCtx().actualDuration;
+    timestamp_t timestampFrom = noteEvent.arrangementCtx().actualTimestamp;
+    duration_t duration = noteEvent.arrangementCtx().actualDuration;
+    timestamp_t timestampTo = timestampFrom + duration;
+
+    midi::Event event(Event::Opcode::PitchBend, Event::MessageType::ChannelVoice10);
+    event.setChannel(channelIdx);
+    event.setData(8192);
+    destination[timestampTo].insert(event);
 
     auto currIt = noteEvent.pitchCtx().pitchCurve.cbegin();
     auto nextIt = std::next(currIt);
     auto endIt = noteEvent.pitchCtx().pitchCurve.cend();
-
-    if (nextIt == endIt) {
-        int bendValue = pitchBendLevel(currIt->second);
-        timestamp_t time = timestampFrom + duration * percentageToFactor(currIt->first);
-        event.setData(bendValue);
-        destination[time].insert(std::move(event));
-        return;
-    }
 
     auto makePoint = [](mpe::timestamp_t time, int value) {
         return Interpolation::Point { static_cast<double>(time), static_cast<double>(value) };
@@ -236,8 +245,10 @@ void FluidSequencer::appendPitchBend(EventSequenceMap& destination, const mpe::N
             timestamp_t time = static_cast<timestamp_t>(std::round(point.x));
             int bendValue = static_cast<int>(std::round(point.y));
 
-            event.setData(bendValue);
-            destination[time].insert(event);
+            if (time < timestampTo) {
+                event.setData(bendValue);
+                destination[time].insert(event);
+            }
         }
     }
 }
@@ -278,9 +289,20 @@ velocity_t FluidSequencer::noteVelocity(const mpe::NoteEvent& noteEvent) const
 {
     static constexpr midi::velocity_t MAX_SUPPORTED_VELOCITY = 127;
 
-    velocity_t result = RealRound(noteEvent.expressionCtx().expressionCurve.velocityFraction() * MAX_SUPPORTED_VELOCITY, 0);
+    const mpe::ExpressionContext& expressionCtx = noteEvent.expressionCtx();
 
-    return std::clamp<velocity_t>(result, 0, MAX_SUPPORTED_VELOCITY);
+    if (expressionCtx.velocityOverride.has_value()) {
+        velocity_t velocity = RealRound(expressionCtx.velocityOverride.value() * MAX_SUPPORTED_VELOCITY, 0);
+        return std::clamp<velocity_t>(velocity, 0, MAX_SUPPORTED_VELOCITY);
+    }
+
+    if (m_useDynamicEvents) {
+        velocity_t result = RealRound(expressionCtx.expressionCurve.velocityFraction() * MAX_SUPPORTED_VELOCITY, 0);
+        return std::clamp<velocity_t>(result, 0, MAX_SUPPORTED_VELOCITY);
+    }
+
+    dynamic_level_t dynamicLevel = expressionCtx.expressionCurve.maxAmplitudeLevel();
+    return expressionLevel(dynamicLevel);
 }
 
 int FluidSequencer::expressionLevel(const mpe::dynamic_level_t dynamicLevel) const
@@ -304,10 +326,6 @@ int FluidSequencer::expressionLevel(const mpe::dynamic_level_t dynamicLevel) con
 
     if (dynamicLevel == mpe::dynamicLevelFromType(DynamicType::Natural)) {
         stepCount -= 0.5;
-    }
-
-    if (dynamicLevel > mpe::dynamicLevelFromType(DynamicType::Natural)) {
-        stepCount -= 1;
     }
 
     dynamic_level_t result = RealRound(MIN_SUPPORTED_VOLUME + (stepCount * VOLUME_STEP), 0);

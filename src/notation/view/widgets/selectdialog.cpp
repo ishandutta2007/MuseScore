@@ -40,7 +40,7 @@ using namespace muse::ui;
 //---------------------------------------------------------
 
 SelectDialog::SelectDialog(QWidget* parent)
-    : QDialog(parent)
+    : QDialog(parent), muse::Injectable(muse::iocCtxForQWidget(this))
 {
     setObjectName("SelectDialog");
     setupUi(this);
@@ -71,14 +71,6 @@ SelectDialog::SelectDialog(QWidget* parent)
     //! NOTE: It is necessary for the correct start of navigation in the dialog
     setFocus();
 }
-
-#ifdef MU_QT5_COMPAT
-SelectDialog::SelectDialog(const SelectDialog& other)
-    : QDialog(other.parentWidget())
-{
-}
-
-#endif
 
 //---------------------------------------------------------
 //   setPattern

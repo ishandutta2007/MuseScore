@@ -151,13 +151,6 @@ FocusableItem {
                 navigationRowStart: heightSection.navigationRowEnd + 1
             }
         }
-
-        PlacementSection {
-            propertyItem: root.model ? root.model.placement : null
-
-            navigationPanel: root.navigationPanel
-            navigationRowStart: continuousHeightSection.navigationRowEnd + 1
-        }
     }
 }
 

@@ -7760,7 +7760,7 @@ By default, they will be placed such as that their right end are at the same lev
     <message>
         <location filename="../../src/notation/internal/notationuiactions.cpp" line="1360"/>
         <source>&amp;Nonuplet</source>
-        <translation type="unfinished"/>
+        <translation>9連符</translation>
     </message>
     <message>
         <location filename="../../src/notation/internal/notationuiactions.cpp" line="1361"/>
@@ -8346,37 +8346,37 @@ By default, they will be placed such as that their right end are at the same lev
     <message>
         <location filename="../../src/notation/internal/notationuiactions.cpp" line="2410"/>
         <source>Show element bounding rectangles</source>
-        <translation type="unfinished"/>
+        <translation>要素の境界の長方形を表示</translation>
     </message>
     <message>
         <location filename="../../src/notation/internal/notationuiactions.cpp" line="2416"/>
         <source>Color element shapes</source>
-        <translation type="unfinished"/>
+        <translation>要素の形に色をつける</translation>
     </message>
     <message>
         <location filename="../../src/notation/internal/notationuiactions.cpp" line="2422"/>
         <source>Show segment shapes</source>
-        <translation type="unfinished"/>
+        <translation>セグメントの形を表示</translation>
     </message>
     <message>
         <location filename="../../src/notation/internal/notationuiactions.cpp" line="2428"/>
         <source>Color segment shapes</source>
-        <translation type="unfinished"/>
+        <translation>セグメントの形に色をつける</translation>
     </message>
     <message>
         <location filename="../../src/notation/internal/notationuiactions.cpp" line="2434"/>
         <source>Show skylines</source>
-        <translation type="unfinished"/>
+        <translation>スカイラインを表示</translation>
     </message>
     <message>
         <location filename="../../src/notation/internal/notationuiactions.cpp" line="2440"/>
         <source>Show system bounding rectangles</source>
-        <translation type="unfinished"/>
+        <translation>段の境界の長方形を表示</translation>
     </message>
     <message>
         <location filename="../../src/notation/internal/notationuiactions.cpp" line="2446"/>
         <source>Show corrupted measures</source>
-        <translation type="unfinished"/>
+        <translation>破損した小節を表示</translation>
     </message>
     <message>
         <location filename="../../src/notation/internal/notationuiactions.cpp" line="1870"/>
@@ -9854,17 +9854,17 @@ By default, they will be placed such as that their right end are at the same lev
     <message>
         <location filename="../../src/diagnostics/internal/diagnosticsactions.cpp" line="55"/>
         <source>Show &amp;accessibility tree…</source>
-        <translation type="unfinished"/>
+        <translation>アクセシビリティツリーを表示...(&amp;A)</translation>
     </message>
     <message>
         <location filename="../../src/diagnostics/internal/diagnosticsactions.cpp" line="60"/>
         <source>&amp;Dump accessibility tree to console</source>
-        <translation type="unfinished"/>
+        <translation>アクセシビリティツリーをコンソールにダンプ(&amp;D)</translation>
     </message>
     <message>
         <location filename="../../src/diagnostics/internal/diagnosticsactions.cpp" line="65"/>
         <source>Show engraving &amp;elements</source>
-        <translation type="unfinished"/>
+        <translation>浄書要素を表示(&amp;E)</translation>
     </message>
     <message>
         <location filename="../../src/multiinstances/internal/multiinstancesuiactions.cpp" line="35"/>
@@ -10531,7 +10531,7 @@ Published under the &lt;a href=&quot;%1&quot;&gt;GNU General Public License vers
     <message>
         <location filename="../../src/appshell/qml/Preferences/internal/AutomaticUpdateSection.qml" line="58"/>
         <source>Update checking requires network access. In order to protect your privacy, MuseScore Studio does not store any personal information. See our &lt;a href=&quot;%1&quot;&gt;privacy policy&lt;/a&gt; for more info.</source>
-        <translation>アップデートの確認にはネットワーク接続が必要です。プライバシーの保護のため、 MuseScore Studio は一切の個人情報を保存しません。詳しくは&lt;a href=&quot;%1&quot;&gt;プライバシーポリシー&lt;/a&gt;をご覧ください。</translation>
+        <translation>アップデートの確認をするためには、ネットワーク接続が必要です。プライバシーの保護のため、 MuseScore Studio は一切の個人情報を保存しません。詳しくは&lt;a href=&quot;%1&quot;&gt;プライバシーポリシー&lt;/a&gt;をご覧ください。</translation>
     </message>
     <message>
         <location filename="../../src/appshell/qml/Preferences/internal/AutoSaveSection.qml" line="30"/>
@@ -11246,7 +11246,7 @@ Published under the &lt;a href=&quot;%1&quot;&gt;GNU General Public License vers
     <message>
         <location filename="../../src/cloud/internal/oauthhttpserverreplyhandler.cpp" line="184"/>
         <source>Sign in successful! You’re good to go back to MuseScore Studio.</source>
-        <translation>サインインに成功しました！ MuseScore Studio に戻ってください。</translation>
+        <translation>サインインに成功しました。 MuseScore Studio に戻ってください。</translation>
     </message>
 </context>
 <context>
@@ -11259,7 +11259,7 @@ Published under the &lt;a href=&quot;%1&quot;&gt;GNU General Public License vers
     <message>
         <location filename="../../src/diagnostics/internal/savediagnosticfilesscenario.cpp" line="38"/>
         <source>This will create a .zip file with information about your MuseScore Studio setup to help developers diagnose any problems you are having. You can inspect the contents of this file before sending it to anyone.</source>
-        <translation>開発者が問題を診断するのに役立つよう、 MuseScore Studio のセットアップに関する情報を含む .zip ファイルが作成されます。このファイルを誰かに送信する前に、その内容を確認することができます。</translation>
+        <translation>開発者が問題を診断するのに役立つように、 MuseScore Studio のセットアップに関する情報を含む .zip ファイルが作成されます。このファイルを開発者などに送信する前に、その内容を確認することができます。</translation>
     </message>
     <message>
         <location filename="../../src/diagnostics/internal/savediagnosticfilesscenario.cpp" line="52"/>
@@ -25805,7 +25805,7 @@ failed.</source>
     <message>
         <location filename="../../src/playback/view/internal/soundflag/soundflagsettingsmodel.cpp" line="74"/>
         <source>Ord. (default)</source>
-        <translation type="unfinished"/>
+        <translation>Ord. (デフォルト)</translation>
     </message>
     <message>
         <location filename="../../src/playback/view/internal/soundflag/soundflagsettingsmodel.cpp" line="282"/>
@@ -25825,7 +25825,7 @@ failed.</source>
     <message>
         <location filename="../../src/playback/view/internal/soundflag/soundflagsettingsmodel.cpp" line="391"/>
         <source>ordinary</source>
-        <translation type="unfinished"/>
+        <translation>普通の</translation>
     </message>
 </context>
 <context>
@@ -26950,7 +26950,7 @@ failed.</source>
     <message>
         <location filename="../../src/project/qml/MuseScore/Project/internal/Migration/MigrationContentForPre362.qml" line="172"/>
         <source>Please note: score layouts will be affected by improvements to MuseScore Studio</source>
-        <translation>ご注意: スコアのレイアウトは MuseScore Studio の改良により変更されます</translation>
+        <translation>注意: スコアのレイアウトは MuseScore Studio の改良により変更されます</translation>
     </message>
     <message>
         <location filename="../../src/project/qml/MuseScore/Project/internal/Migration/MigrationContentForPre362.qml" line="178"/>
@@ -28335,7 +28335,7 @@ failed.</source>
     <message>
         <location filename="../../src/update/qml/MuseScore/Update/internal/MuseSoundsReleaseInfoBottomPanel.qml" line="51"/>
         <source>No thanks</source>
-        <translation type="unfinished"/>
+        <translation>いいえ</translation>
     </message>
     <message>
         <location filename="../../src/update/qml/MuseScore/Update/internal/MuseSoundsReleaseInfoBottomPanel.qml" line="68"/>

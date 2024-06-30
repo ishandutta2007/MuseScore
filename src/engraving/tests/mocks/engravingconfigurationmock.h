@@ -54,15 +54,16 @@ public:
     MOCK_METHOD(Color, thumbnailBackgroundColor, (), (const, override));
     MOCK_METHOD(Color, noteBackgroundColor, (), (const, override));
     MOCK_METHOD(Color, fontPrimaryColor, (), (const, override));
-
-    MOCK_METHOD(Color, timeTickAnchorColorLighter, (), (const, override));
-    MOCK_METHOD(Color, timeTickAnchorColorDarker, (), (const, override));
+    MOCK_METHOD(Color, voiceColor, (voice_idx_t), (const, override));
 
     MOCK_METHOD(double, guiScaling, (), (const, override));
 
     MOCK_METHOD(Color, selectionColor, (engraving::voice_idx_t, bool, bool), (const, override));
     MOCK_METHOD(void, setSelectionColor, (engraving::voice_idx_t, Color), (override));
     MOCK_METHOD((muse::async::Channel<engraving::voice_idx_t, Color>), selectionColorChanged, (), (const, override));
+
+    MOCK_METHOD(bool, dynamicsApplyToAllVoices, (), (const, override));
+    MOCK_METHOD(void, setDynamicsApplyToAllVoices, (bool), (override));
 
     MOCK_METHOD(bool, scoreInversionEnabled, (), (const, override));
     MOCK_METHOD(void, setScoreInversionEnabled, (bool), (override));
@@ -77,6 +78,8 @@ public:
     MOCK_METHOD(bool, isAccessibleEnabled, (), (const, override));
 
     MOCK_METHOD(bool, guitarProImportExperimental, (), (const, override));
+    MOCK_METHOD(bool, useStretchedBends, (), (const, override));
+    MOCK_METHOD(bool, shouldAddParenthesisOnStandardStaff, (), (const, override));
     MOCK_METHOD(bool, negativeFretsAllowed, (), (const, override));
     MOCK_METHOD(bool, crossNoteHeadAlwaysBlack, (), (const, override));
     MOCK_METHOD(bool, enableExperimentalFretCircle, (), (const, override));

@@ -394,6 +394,9 @@ public:
         PLUGIN = 0xF440,
         LYRICS = 0xF441,
         LEARN = 0xF441,
+        SPECTROGRAM = 0xF442,
+        SPECTROGRAM_BOX_SELECTION = 0xF443,
+        BRUSH = 0xF444,
 
         PLAY_FILL = 0xF446,
         STOP_FILL = 0xF447,
@@ -403,6 +406,7 @@ public:
         PAUSE_FILL = 0xF44B,
 
         REST_8TH = 0xF44C,
+        CIRCLE = 0xF44D,
 
         SHARE_AUDIO = 0xF44F,
 
@@ -413,7 +417,7 @@ public:
         CLOUD_FILL = 0xF454,
         BRAILLE = 0xF455,
 
-        ENVELOPE = 0xF45C,
+        AUTOMATION = 0xF45C,
 
         GUITAR_BEND_REGULAR = 0xF45F,
         GUITAR_PRE_BEND = 0xF460,

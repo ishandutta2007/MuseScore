@@ -35,6 +35,7 @@
 #include "chord.h"
 #include "chordline.h"
 #include "clef.h"
+#include "dynamic.h"
 #include "excerpt.h"
 #include "expression.h"
 #include "factory.h"
@@ -142,29 +143,29 @@ ChordRest* Score::getSelectedChordRest() const
 //   getSelectedChordRest2
 //---------------------------------------------------------
 
-void Score::getSelectedChordRest2(ChordRest** cr1, ChordRest** cr2) const
+void Score::getSelectedStartEndChordRests(ChordRest*& cr1, ChordRest*& cr2) const
 {
-    *cr1 = 0;
-    *cr2 = 0;
+    cr1 = 0;
+    cr2 = 0;
     for (EngravingItem* e : selection().elements()) {
         if (e->isNote()) {
             e = e->parentItem();
         }
         if (e->isChordRest()) {
             ChordRest* cr = toChordRest(e);
-            if (*cr1 == 0 || (*cr1)->tick() > cr->tick()) {
-                *cr1 = cr;
+            if (cr1 == 0 || (cr1)->tick() > cr->tick()) {
+                cr1 = cr;
             }
-            if (*cr2 == 0 || (*cr2)->tick() < cr->tick()) {
-                *cr2 = cr;
+            if (cr2 == 0 || (cr2)->tick() < cr->tick()) {
+                cr2 = cr;
             }
         }
     }
-    if (*cr1 == 0) {
+    if (cr1 == 0) {
         MScore::setError(MsError::NO_NOTE_REST_SELECTED);
     }
-    if (*cr1 == *cr2) {
-        *cr2 = 0;
+    if (cr1 == cr2) {
+        cr2 = 0;
     }
 }
 
@@ -254,9 +255,9 @@ Tuplet* Score::addTuplet(ChordRest* destinationChordRest, Fraction ratio, Tuplet
 
     Fraction fr = f * Fraction(1, _ratio.denominator());
     if (!TDuration::isValid(fr)) {
-        MessageBox::warning(muse::mtrc("engraving", "Cannot create tuplet with ratio %1 for duration %2")
-                            .arg(_ratio.toString(), f.toString()).toStdString(),
-                            std::string(), { MessageBox::Ok });
+        MessageBox(iocContext()).warning(muse::mtrc("engraving", "Cannot create tuplet with ratio %1 for duration %2")
+                                         .arg(_ratio.toString(), f.toString()).toStdString(),
+                                         std::string(), { MessageBox::Ok });
         return nullptr;
     }
 
@@ -2066,7 +2067,7 @@ void Score::cmdAddOttava(OttavaType type)
     } else {
         ChordRest* cr1;
         ChordRest* cr2;
-        getSelectedChordRest2(&cr1, &cr2);
+        getSelectedStartEndChordRests(cr1, cr2);
         if (!cr1) {
             return;
         }
@@ -2089,33 +2090,6 @@ void Score::cmdAddOttava(OttavaType type)
             select(ottava, SelectType::SINGLE, 0);
         }
     }
-}
-
-//---------------------------------------------------------
-//   addHairpins
-//---------------------------------------------------------
-
-std::vector<Hairpin*> Score::addHairpins(HairpinType type)
-{
-    std::vector<Hairpin*> hairpins;
-
-    // add hairpin on each staff if possible
-    if (selection().isRange() && selection().staffStart() != selection().staffEnd() - 1) {
-        for (staff_idx_t staffIdx = selection().staffStart(); staffIdx < selection().staffEnd(); ++staffIdx) {
-            ChordRest* cr1 = selection().firstChordRest(staffIdx * VOICES);
-            ChordRest* cr2 = selection().lastChordRest(staffIdx * VOICES);
-            hairpins.push_back(addHairpin(type, cr1, cr2));
-        }
-    } else {
-        // for single staff range selection, or single selection,
-        // find start & end elements elements
-        ChordRest* cr1 = nullptr;
-        ChordRest* cr2 = nullptr;
-        getSelectedChordRest2(&cr1, &cr2);
-        hairpins.push_back(addHairpin(type, cr1, cr2));
-    }
-
-    return hairpins;
 }
 
 //---------------------------------------------------------
@@ -3241,12 +3215,21 @@ void Score::reconnectSlurs(MeasureBase* mbStart, MeasureBase* mbEnd)
 ///   given selection filter.
 //---------------------------------------------------------
 
-void Score::deleteSpannersFromRange(const Fraction& t1, const Fraction& t2, track_idx_t track1, track_idx_t track2,
-                                    const SelectionFilter& filter)
+void Score::deleteOrShortenOutSpannersFromRange(const Fraction& t1, const Fraction& t2, track_idx_t track1, track_idx_t track2,
+                                                const SelectionFilter& filter)
 {
+    static const std::set<ElementType> SPANNER_TYPES_TO_SHORTEN_OUT {
+        ElementType::HAIRPIN,
+        ElementType::OTTAVA,
+        ElementType::TRILL,
+        ElementType::VIBRATO,
+    };
+
     auto spanners = m_spanner.findOverlapping(t1.ticks(), t2.ticks() - 1);
     for (auto i : spanners) {
         Spanner* sp = i.value;
+        Fraction spStartTick = sp->tick();
+        Fraction spEndTick = sp->tick2();
         if (sp->isVolta() || sp->systemFlag()) {
             continue;
         }
@@ -3254,12 +3237,23 @@ void Score::deleteSpannersFromRange(const Fraction& t1, const Fraction& t2, trac
             continue;
         }
         if (sp->track() >= track1 && sp->track() < track2) {
-            if (sp->tick() >= t1 && sp->tick() < t2
-                && sp->tick2() >= t1 && sp->tick2() <= t2) {
+            if (spStartTick >= t1 && spStartTick < t2
+                && spEndTick >= t1 && spEndTick <= t2) {
                 undoRemoveElement(sp);
-            } else if (sp->isSlur() && ((sp->tick() >= t1 && sp->tick() < t2)
-                                        || (sp->tick2() >= t1 && sp->tick2() < t2))) {
+            } else if (sp->isSlur() && ((spStartTick >= t1 && spStartTick < t2)
+                                        || (spEndTick >= t1 && spEndTick < t2))) {
                 undoRemoveElement(sp);
+            } else if (muse::contains(SPANNER_TYPES_TO_SHORTEN_OUT, sp->type())) {
+                bool moveStart = spStartTick >= t1 && spStartTick < t2;
+                bool moveEnd = spEndTick > t1 && spEndTick <= t2;
+                if (moveStart) {
+                    Fraction tickDiff = t2 - spStartTick;
+                    sp->undoChangeProperty(Pid::SPANNER_TICK, t2);
+                    sp->undoChangeProperty(Pid::SPANNER_TICKS, sp->ticks() - tickDiff);
+                } else if (moveEnd) {
+                    Fraction tickDiff = spEndTick - t1;
+                    sp->undoChangeProperty(Pid::SPANNER_TICKS, sp->ticks() - tickDiff);
+                }
             }
         }
     }
@@ -3333,7 +3327,8 @@ std::vector<ChordRest*> Score::deleteRange(Segment* s1, Segment* s2, track_idx_t
 
         Fraction tick2 = s2 ? s2->tick() : Fraction::max();
 
-        deleteSpannersFromRange(stick1, stick2, track1, track2, filter);
+        deleteOrShortenOutSpannersFromRange(stick1, stick2, track1, track2, filter);
+        deleteAnnotationsFromRange(s1, s2, track1, track2, filter);
 
         for (track_idx_t track = track1; track < track2; ++track) {
             if (!filter.canSelectVoice(track)) {
@@ -3347,8 +3342,6 @@ std::vector<ChordRest*> Score::deleteRange(Segment* s1, Segment* s2, track_idx_t
                     deleteItem(s->element(track));
                     continue;
                 }
-                // delete annotations just from this segment and track
-                deleteAnnotationsFromRange(s, s->next1(), track, track + 1, filter);
 
                 EngravingItem* e = s->element(track);
                 if (!e) {
@@ -3357,10 +3350,9 @@ std::vector<ChordRest*> Score::deleteRange(Segment* s1, Segment* s2, track_idx_t
                 if (!s->isChordRestType()) {
                     // do not delete TimeSig/KeySig,
                     // it doesn't make sense to do it, except on full system
-                    if (s->segmentType() != SegmentType::TimeSig && s->segmentType() != SegmentType::KeySig) {
-                        if (!(e->isBarLine())) {
-                            undoRemoveElement(e);
-                        }
+                    if (!s->isTimeTickType() && !s->isTimeSigType() && !s->isKeySigType()
+                        && !s->isType(SegmentType::BarLineType) /*covers all barLine types*/) {
+                        undoRemoveElement(e);
                     }
                     continue;
                 }
@@ -3748,44 +3740,122 @@ Lyrics* Score::addLyrics()
     return lyrics;
 }
 
-//---------------------------------------------------------
-//   addHairpin
-//---------------------------------------------------------
-
-Hairpin* Score::addHairpin(HairpinType t, const Fraction& tickStart, const Fraction& tickEnd, track_idx_t track)
+std::vector<Hairpin*> Score::addHairpins(HairpinType type)
 {
-    Hairpin* pin = Factory::createHairpin(this->dummy()->segment());
-    pin->setHairpinType(t);
-    if (t == HairpinType::CRESC_LINE) {
-        pin->setBeginText(u"cresc.");
-        pin->setContinueText(u"(cresc.)");
-    } else if (t == HairpinType::DECRESC_LINE) {
-        pin->setBeginText(u"dim.");
-        pin->setContinueText(u"(dim.)");
-    }
-    pin->setTrack(track);
-    pin->setTrack2(track);
-    pin->setTick(tickStart);
-    pin->setTick2(tickEnd);
-    undoAddElement(pin);
-    return pin;
-}
+    std::vector<Hairpin*> hairpins;
 
-//---------------------------------------------------------
-//   Score::addHairpin
-//---------------------------------------------------------
+    // add hairpin on each staff if possible
+    if (selection().isRange() && selection().staffStart() != selection().staffEnd() - 1) {
+        for (staff_idx_t staffIdx = selection().staffStart(); staffIdx < selection().staffEnd(); ++staffIdx) {
+            ChordRest* cr1 = selection().firstChordRest(staffIdx * VOICES);
+            ChordRest* cr2 = selection().lastChordRest(staffIdx * VOICES);
+            hairpins.push_back(addHairpin(type, cr1, cr2));
+        }
+    } else {
+        // for single staff range selection, or single selection,
+        // find start & end elements elements
+        ChordRest* cr1 = nullptr;
+        ChordRest* cr2 = nullptr;
+        getSelectedStartEndChordRests(cr1, cr2);
+        hairpins.push_back(addHairpin(type, cr1, cr2));
+    }
+
+    return hairpins;
+}
 
 Hairpin* Score::addHairpin(HairpinType type, ChordRest* cr1, ChordRest* cr2)
 {
     if (!cr1) {
         return nullptr;
     }
-    if (!cr2) {
-        cr2 = cr1;
+
+    Hairpin* hairpin = Factory::createHairpin(this->dummy()->segment());
+    hairpin->setHairpinType(type);
+    if (type == HairpinType::CRESC_LINE) {
+        hairpin->setBeginText(u"cresc.");
+        hairpin->setContinueText(u"(cresc.)");
+    } else if (type == HairpinType::DECRESC_LINE) {
+        hairpin->setBeginText(u"dim.");
+        hairpin->setContinueText(u"(dim.)");
     }
-    assert(cr1->staffIdx() == cr2->staffIdx());
-    const Fraction end = cr2->tick() + cr2->actualTicks();
-    return addHairpin(type, cr1->tick(), end, cr1->track());
+
+    addHairpin(hairpin, cr1, cr2);
+
+    return hairpin;
+}
+
+void Score::addHairpin(Hairpin* hairpin, ChordRest* cr1, ChordRest* cr2)
+{
+    track_idx_t track = cr1->track();
+    Fraction startTick = cr1->tick();
+
+    Fraction endTick = startTick;
+    if (m_selection.isRange()) {
+        endTick = m_selection.tickEnd();
+    } else {
+        if (cr2 && cr2 != cr1) {
+            endTick = cr2->endTick();
+        } else {
+            endTick = cr1->isChord() ? toChord(cr1)->endTickIncludingTied() : cr1->endTick();
+        }
+        const Segment* startSegment = cr2 ? cr2->segment() : cr1->segment();
+        for (const Segment* segment = startSegment; segment && segment->tick() < endTick;
+             segment = segment->next1(SegmentType::ChordRest | SegmentType::TimeTick)) {
+            if (segment == startSegment) {
+                continue;
+            }
+            if (segment->findAnnotation(ElementType::DYNAMIC, track, track)) {
+                endTick = segment->tick();
+                break;
+            }
+        }
+    }
+
+    hairpin->setTrack(track);
+    hairpin->setTrack2(track);
+    hairpin->setTick(startTick);
+    hairpin->setTick2(endTick);
+
+    undoAddElement(hairpin);
+}
+
+void Score::addHairpinToDynamic(Hairpin* hairpin, Dynamic* dynamic)
+{
+    track_idx_t track = dynamic->track();
+    hairpin->setTrack(track);
+    hairpin->setTrack2(track);
+
+    hairpin->setTick(dynamic->tick());
+
+    Segment* dynamicSegment = dynamic->segment();
+
+    Chord* startChord = nullptr;
+    for (Segment* segment = dynamicSegment; segment; segment = segment->prev(SegmentType::ChordRest)) {
+        EngravingItem* element = segment->elementAt(track);
+        if (element && element->isChord()) {
+            startChord = toChord(element);
+            break;
+        }
+    }
+
+    Fraction endTick = startChord ? startChord->endTickIncludingTied() : dynamic->segment()->measure()->endTick();
+
+    for (Segment* segment = dynamicSegment; segment && segment->tick() < endTick;
+         segment = segment->next1(SegmentType::ChordRest | SegmentType::TimeTick)) {
+        if (segment == dynamicSegment) {
+            continue;
+        }
+        if (segment->findAnnotation(ElementType::DYNAMIC, track, track)) {
+            endTick = segment->tick();
+            break;
+        }
+    }
+
+    hairpin->setTick2(endTick);
+
+    hairpin->setApplyToVoice(dynamic->applyToVoice());
+
+    undoAddElement(hairpin);
 }
 
 //---------------------------------------------------------
@@ -4863,8 +4933,9 @@ void Score::undoChangeParent(EngravingItem* element, EngravingItem* parent, staf
             if (parent->isSegment()) {
                 // Get parent segment in linked score
                 Segment* oldSeg = toSegment(parent);
-                Measure* m = linkedScore->tick2measure(oldSeg->tick());
-                linkedParent = m->tick2segment(oldSeg->tick(), oldSeg->segmentType());
+                Measure* oldMeas = oldSeg->measure();
+                Measure* newMeas = linkedScore->tick2measure(oldMeas->tick());
+                linkedParent = newMeas->tick2segment(oldSeg->tick(), oldSeg->segmentType());
             } else {
                 linkedParent = parent->findLinkedInScore(linkedScore);
             }

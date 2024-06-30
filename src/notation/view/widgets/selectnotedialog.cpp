@@ -51,7 +51,7 @@ using namespace muse::ui;
 //---------------------------------------------------------
 
 SelectNoteDialog::SelectNoteDialog(QWidget* parent)
-    : QDialog(parent)
+    : QDialog(parent), muse::Injectable(muse::iocCtxForQWidget(this))
 {
     setObjectName("SelectNoteDialog");
     setupUi(this);
@@ -99,14 +99,6 @@ SelectNoteDialog::SelectNoteDialog(QWidget* parent)
     //! NOTE: It is necessary for the correct start of navigation in the dialog
     setFocus();
 }
-
-#ifdef MU_QT5_COMPAT
-SelectNoteDialog::SelectNoteDialog(const SelectNoteDialog& other)
-    : QDialog(other.parentWidget())
-{
-}
-
-#endif
 
 FilterNotesOptions SelectNoteDialog::noteOptions() const
 {

@@ -66,6 +66,7 @@ namespace mu::engraving {
 Staff::Staff(Part* parent)
     : EngravingItem(ElementType::STAFF, parent)
 {
+    m_color = configuration()->defaultColor();
     initFromStaffType(0);
 }
 
@@ -821,6 +822,11 @@ double Staff::staffHeight() const
     return (lines(tick) - 1) * spatium(tick) * staffType(tick)->lineDistance().val();
 }
 
+double Staff::staffHeight(const Fraction& tick) const
+{
+    return (lines(tick) - 1) * spatium(tick) * staffType(tick)->lineDistance().val();
+}
+
 //---------------------------------------------------------
 //   spatium
 //---------------------------------------------------------
@@ -1518,7 +1524,7 @@ PropertyValue Staff::propertyDefault(Pid id) const
     case Pid::MAG:
         return 1.0;
     case Pid::STAFF_COLOR:
-        return PropertyValue::fromValue(engravingConfiguration()->defaultColor());
+        return PropertyValue::fromValue(configuration()->defaultColor());
     case Pid::PLAYBACK_VOICE1:
     case Pid::PLAYBACK_VOICE2:
     case Pid::PLAYBACK_VOICE3:

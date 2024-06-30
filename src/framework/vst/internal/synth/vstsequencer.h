@@ -57,17 +57,17 @@ namespace muse::vst {
 class VstSequencer : public muse::audio::AbstractEventSequencer<VstEvent, PluginParamInfo, muse::audio::gain_t>
 {
 public:
-    void init(ParamsMapping&& mapping);
+    void init(ParamsMapping&& mapping, bool useDynamicEvents);
 
-    void updateOffStreamEvents(const mpe::PlaybackEventsMap& events, const mpe::PlaybackParamMap& params) override;
-    void updateMainStreamEvents(const mpe::PlaybackEventsMap& events, const mpe::DynamicLevelMap& dynamics,
-                                const mpe::PlaybackParamMap& params) override;
+    void updateOffStreamEvents(const mpe::PlaybackEventsMap& events, const mpe::PlaybackParamList& params) override;
+    void updateMainStreamEvents(const mpe::PlaybackEventsMap& events, const mpe::DynamicLevelLayers& dynamics,
+                                const mpe::PlaybackParamLayers& params) override;
 
     muse::audio::gain_t currentGain() const;
 
 private:
     void updatePlaybackEvents(EventSequenceMap& destination, const mpe::PlaybackEventsMap& events);
-    void updateDynamicEvents(EventSequenceMap& destination, const mpe::DynamicLevelMap& dynamics);
+    void updateDynamicEvents(EventSequenceMap& destination, const mpe::DynamicLevelLayers& layers);
 
     void appendControlSwitch(EventSequenceMap& destination, const mpe::NoteEvent& noteEvent, const mpe::ArticulationTypeSet& appliableTypes,
                              const ControllIdx controlIdx);
@@ -84,6 +84,7 @@ private:
     float pitchBendLevel(const mpe::pitch_level_t pitchLevel) const;
 
     bool m_inited = false;
+    bool m_useDynamicEvents = false;
     ParamsMapping m_mapping;
     mpe::PlaybackEventsMap m_playbackEventsMap;
 };

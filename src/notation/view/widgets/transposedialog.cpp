@@ -32,7 +32,7 @@ using namespace muse::ui;
 //---------------------------------------------------------
 
 TransposeDialog::TransposeDialog(QWidget* parent)
-    : QDialog(parent)
+    : QDialog(parent), muse::Injectable(muse::iocCtxForQWidget(this))
 {
     setObjectName("TransposeDialog");
     setupUi(this);
@@ -62,14 +62,6 @@ TransposeDialog::TransposeDialog(QWidget* parent)
     //! NOTE: It is necessary for the correct start of navigation in the dialog
     setFocus();
 }
-
-#ifdef MU_QT5_COMPAT
-TransposeDialog::TransposeDialog(const TransposeDialog& dialog)
-    : TransposeDialog(dialog.parentWidget())
-{
-}
-
-#endif
 
 //---------------------------------------------------------
 //   TransposeDialog slots

@@ -27,7 +27,6 @@
 #include "importptb.h"
 
 #include "realfn.h"
-#include "translation.h"
 
 #include "engraving/types/typesconv.h"
 #include "engraving/types/symid.h"
@@ -48,20 +47,16 @@
 #include "engraving/dom/factory.h"
 #include "engraving/dom/fret.h"
 #include "engraving/dom/glissando.h"
-#include "engraving/dom/hairpin.h"
 #include "engraving/dom/harmony.h"
 #include "engraving/dom/instrchange.h"
 #include "engraving/dom/instrtemplate.h"
 #include "engraving/dom/keysig.h"
-#include "engraving/dom/letring.h"
 #include "engraving/dom/lyrics.h"
 #include "engraving/dom/masterscore.h"
 #include "engraving/dom/measure.h"
 #include "engraving/dom/measurebase.h"
 #include "engraving/dom/note.h"
 #include "engraving/dom/notedot.h"
-#include "engraving/dom/ottava.h"
-#include "engraving/dom/palmmute.h"
 #include "engraving/dom/part.h"
 #include "engraving/dom/rehearsalmark.h"
 #include "engraving/dom/rest.h"
@@ -78,9 +73,7 @@
 #include "engraving/dom/tie.h"
 #include "engraving/dom/timesig.h"
 #include "engraving/dom/tuplet.h"
-#include "engraving/dom/tremolobar.h"
 #include "engraving/dom/volta.h"
-#include "engraving/dom/vibrato.h"
 
 #include "log.h"
 
@@ -959,7 +952,7 @@ void GuitarPro::createBend(Note* note, std::vector<PitchValue>& bendData)
         return;
     }
 
-    bool useStretchedBends = engravingConfiguration()->guitarProImportExperimental();
+    bool useStretchedBends = engravingConfiguration()->useStretchedBends();
 
     if (useStretchedBends) {
         Chord* chord = toChord(note->parent());
@@ -3094,7 +3087,7 @@ void GuitarPro::readTremoloBar(int /*track*/, Segment* /*segment*/)
 //   addMetaInfo
 //---------------------------------------------------------
 
-static void addMetaInfo(MasterScore* score, GuitarPro* gp)
+static void addMetaInfo(MasterScore* score, GuitarPro* gp, bool experimental)
 {
     std::vector<String> fieldNames = { gp->title, gp->subtitle, gp->artist,
                                        gp->album, gp->composer };
@@ -3102,52 +3095,60 @@ static void addMetaInfo(MasterScore* score, GuitarPro* gp)
     bool createTitleField
         = std::any_of(fieldNames.begin(), fieldNames.end(), [](const String& fieldName) { return !fieldName.isEmpty(); });
 
-    if (createTitleField) {
-        MeasureBase* m;
-        if (!score->measures()->first()) {
-            m = Factory::createVBox(score->dummy()->system());
-            m->setTick(Fraction(0, 1));
-            score->addMeasure(m, 0);
-        } else {
-            m = score->measures()->first();
-            if (!m->isVBox()) {
-                MeasureBase* mb = Factory::createVBox(score->dummy()->system());
-                mb->setTick(Fraction(0, 1));
-                score->addMeasure(mb, m);
-                m = mb;
-            }
+    if (!createTitleField && !experimental) {
+        return;
+    }
+
+    MeasureBase* m = nullptr;
+    if (!score->measures()->first()) {
+        m = Factory::createVBox(score->dummy()->system());
+        m->setTick(Fraction(0, 1));
+        score->addMeasure(m, 0);
+    } else {
+        m = score->measures()->first();
+        if (!m->isVBox()) {
+            MeasureBase* mb = Factory::createVBox(score->dummy()->system());
+            mb->setTick(Fraction(0, 1));
+            score->addMeasure(mb, m);
+            m = mb;
         }
-        if (!gp->title.isEmpty()) {
-            Text* s = Factory::createText(m, TextStyleType::TITLE);
-            s->setPlainText(gp->title);
-            m->add(s);
+    }
+    if (!gp->title.isEmpty() || experimental) {
+        Text* s = Factory::createText(m, TextStyleType::TITLE);
+        s->setPlainText(gp->title);
+        m->add(s);
+    }
+    if (!gp->subtitle.isEmpty() || !gp->artist.isEmpty() || !gp->album.isEmpty() || experimental) {
+        Text* s = Factory::createText(m, TextStyleType::SUBTITLE);
+        String str;
+        if (!gp->subtitle.isEmpty()) {
+            str.append(gp->subtitle);
         }
-        if (!gp->subtitle.isEmpty() || !gp->artist.isEmpty() || !gp->album.isEmpty()) {
-            Text* s = Factory::createText(m, TextStyleType::SUBTITLE);
-            String str;
-            if (!gp->subtitle.isEmpty()) {
-                str.append(gp->subtitle);
+        if (!gp->artist.isEmpty()) {
+            if (!str.isEmpty()) {
+                str.append(u'\n');
             }
-            if (!gp->artist.isEmpty()) {
-                if (!str.isEmpty()) {
-                    str.append(u'\n');
-                }
-                str.append(gp->artist);
-            }
-            if (!gp->album.isEmpty()) {
-                if (!str.isEmpty()) {
-                    str.append(u'\n');
-                }
-                str.append(gp->album);
-            }
-            s->setPlainText(str);
-            m->add(s);
+            str.append(gp->artist);
         }
-        if (!gp->composer.isEmpty()) {
-            Text* s = Factory::createText(m, TextStyleType::COMPOSER);
-            s->setPlainText(gp->composer);
-            m->add(s);
+        if (!gp->album.isEmpty()) {
+            if (!str.isEmpty()) {
+                str.append(u'\n');
+            }
+            str.append(gp->album);
         }
+        s->setPlainText(str);
+        m->add(s);
+    }
+    if (!gp->composer.isEmpty()) {
+        Text* s = Factory::createText(m, TextStyleType::COMPOSER);
+        s->setPlainText(gp->composer);
+        m->add(s);
+    }
+
+    //TODO: Temporary for experimental import, will be deleted later
+    if (experimental) {
+        Text* s = Factory::createText(score->dummy(), TextStyleType::LYRICIST);
+        m->add(s);
     }
 }
 
@@ -3335,7 +3336,7 @@ static Err importScore(MasterScore* score, muse::io::IODevice* io, bool experime
         return Err::NoError;
     }
 
-    addMetaInfo(score, gp);
+    addMetaInfo(score, gp, experimental);
 
     int idx = 0;
 

@@ -1638,8 +1638,8 @@ void TLayout::layoutChordLine(const ChordLine* item, ChordLine::LayoutData* ldat
         height = r.height();
         ldata->setBbox(x1, y1, width, height);
     } else {
-        RectF r = conf.engravingFont()->bbox(ChordLine::WAVE_SYMBOLS, item->magS());
-        double angle = ChordLine::WAVE_ANGEL * M_PI / 180;
+        RectF r = conf.engravingFont()->bbox({ SymId::wiggleVIbratoMediumSlower, SymId::wiggleVIbratoMediumSlower }, item->magS());
+        double angle = 20 * M_PI / 180;
 
         r.setHeight(r.height() + r.width() * sin(angle));
 
@@ -1820,7 +1820,8 @@ void TLayout::layoutDeadSlapped(const DeadSlapped* item, DeadSlapped::LayoutData
 
 void TLayout::layoutDynamic(const Dynamic* item, Dynamic::LayoutData* ldata, const LayoutConfiguration& conf)
 {
-    const_cast<Dynamic*>(item)->setSnappedExpression(nullptr); // Here we reset it. It will become known again when we layout expression
+    ldata->disconnectItemSnappedAfter();
+    ldata->disconnectItemSnappedBefore();
 
     const StaffType* stType = item->staffType();
     if (stType && stType->isHiddenElementOnTab(conf.style(), Sid::dynamicsShowTabCommon, Sid::dynamicsShowTabSimple)) {
@@ -1917,7 +1918,8 @@ void TLayout::layoutExpression(const Expression* item, Expression::LayoutData* l
         }
     }
 
-    const_cast<Expression*>(item)->setSnappedDynamic(nullptr);
+    ldata->disconnectItemSnappedAfter();
+    ldata->disconnectItemSnappedBefore();
 
     if (!item->autoplace()) {
         return;
@@ -1940,14 +1942,13 @@ void TLayout::layoutExpression(const Expression* item, Expression::LayoutData* l
         return;
     }
 
-    const_cast<Expression*>(item)->setSnappedDynamic(dynamic);
-    dynamic->setSnappedExpression(const_cast<Expression*>(item));
+    ldata->connectItemSnappedBefore(dynamic);
 
     LD_CONDITION(dynamic->ldata()->isSetBbox()); // dynamic->shape()
     LD_CONDITION(dynamic->ldata()->isSetPos());
 
     // If there is a dynamic on same segment and track, lock this expression to it
-    double padding = item->computeDynamicExpressionDistance();
+    double padding = item->computeDynamicExpressionDistance(dynamic);
     double dynamicRight = dynamic->shape().translate(dynamic->pos()).right();
     double expressionLeft = ldata->bbox().translated(item->pos()).left();
     double difference = expressionLeft - dynamicRight - padding;
@@ -2371,7 +2372,7 @@ void TLayout::layoutFingering(const Fingering* item, Fingering::LayoutData* ldat
                 } else {
                     RectF r = ldata->bbox().translated(measure->pos() + segment->pos() + chord->pos() + note->pos() + item->pos());
                     SkylineLine sk(false);
-                    sk.add(r.x(), r.bottom(), r.width());
+                    sk.add(r, const_cast<Fingering*>(item));
                     double d = sk.minDistance(ss->skyline().north());
                     double yd = 0.0;
                     if (d > 0.0 && item->isStyled(Pid::MIN_DISTANCE)) {
@@ -2407,7 +2408,7 @@ void TLayout::layoutFingering(const Fingering* item, Fingering::LayoutData* ldat
                 } else {
                     RectF r = ldata->bbox().translated(measure->pos() + segment->pos() + chord->pos() + note->pos() + item->pos());
                     SkylineLine sk(true);
-                    sk.add(r.x(), r.top(), r.width());
+                    sk.add(r, const_cast<Fingering*>(item));
                     double d = ss->skyline().south().minDistance(sk);
                     double yd = 0.0;
                     if (d > 0.0 && item->isStyled(Pid::MIN_DISTANCE)) {
@@ -2552,7 +2553,7 @@ void TLayout::layoutFretDiagram(const FretDiagram* item, FretDiagram::LayoutData
 
         double minDistance = harmony->minDistance().val() * item->spatium();
         SkylineLine sk(false);
-        sk.add(r.x(), r.bottom(), r.width());
+        sk.add(r, harmony);
         double d = sk.minDistance(ss->skyline().north());
         if (d > -minDistance) {
             double yd = d + minDistance;
@@ -2561,7 +2562,7 @@ void TLayout::layoutFretDiagram(const FretDiagram* item, FretDiagram::LayoutData
             r.translate(PointF(0.0, yd));
         }
         if (harmony->addToSkyline()) {
-            ss->skyline().add(r);
+            ss->skyline().add(r, harmony);
         }
     }
 }
@@ -3212,7 +3213,7 @@ void TLayout::layoutHairpinSegment(HairpinSegment* item, LayoutContext& ctx)
                         RectF r = sd->ldata()->bbox().translated(sd->pos());
                         s->staffShape(sd->staffIdx()).add(r);
                         r = sd->ldata()->bbox().translated(sd->pos() + s->pos() + m->pos());
-                        m->system()->staff(sd->staffIdx())->skyline().add(r);
+                        m->system()->staff(sd->staffIdx())->skyline().add(r, sd);
                     }
                 }
             }
@@ -3236,7 +3237,7 @@ void TLayout::layoutHairpinSegment(HairpinSegment* item, LayoutContext& ctx)
                         RectF r = ed->ldata()->bbox().translated(ed->pos());
                         s->staffShape(ed->staffIdx()).add(r);
                         r = ed->ldata()->bbox().translated(ed->pos() + s->pos() + m->pos());
-                        m->system()->staff(ed->staffIdx())->skyline().add(r);
+                        m->system()->staff(ed->staffIdx())->skyline().add(r, ed);
                     }
                 }
             }
@@ -4249,7 +4250,7 @@ void TLayout::layoutNote(const Note* item, Note::LayoutData* ldata)
             const_cast<Note*>(item)->setHeadGroup(NoteHeadGroup::HEAD_DIAMOND);
         }
         SymId nh = item->noteHead();
-        if (Note::engravingConfiguration()->crossNoteHeadAlwaysBlack() && ((nh == SymId::noteheadXHalf) || (nh == SymId::noteheadXWhole))) {
+        if (item->configuration()->crossNoteHeadAlwaysBlack() && ((nh == SymId::noteheadXHalf) || (nh == SymId::noteheadXWhole))) {
             nh = SymId::noteheadXBlack;
         }
 
@@ -4938,7 +4939,7 @@ void TLayout::layoutForWidth(StaffLines* item, double w, LayoutContext& ctx)
 //                  rypos() = 2 * _spatium;
     } else {
         _lines = 5;
-        item->setColor(StaffLines::engravingConfiguration()->defaultColor());
+        item->setColor(item->configuration()->defaultColor());
     }
     item->setLw(ctx.conf().styleS(Sid::staffLineWidth).val() * _spatium);
     double x1 = item->pos().x();

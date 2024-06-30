@@ -84,6 +84,7 @@
 #include "engraving/dom/keysig.h"
 #include "engraving/dom/layoutbreak.h"
 #include "engraving/dom/letring.h"
+#include "engraving/dom/linkedobjects.h"
 #include "engraving/dom/lyrics.h"
 #include "engraving/dom/marker.h"
 #include "engraving/dom/masterscore.h"
@@ -353,14 +354,15 @@ struct MeasurePrintContext final
 typedef std::unordered_map<const ChordRest*, const Trill*> TrillHash;
 typedef std::map<const Instrument*, int> MxmlInstrumentMap;
 
-class ExportMusicXml
+class ExportMusicXml : public muse::Injectable
 {
 public:
-    INJECT_STATIC(mu::iex::musicxml::IMusicXmlConfiguration, configuration)
-    INJECT_STATIC(muse::IApplication, application)
+    static inline muse::GlobalInject<mu::iex::musicxml::IMusicXmlConfiguration> configuration;
+    muse::Inject<muse::IApplication> application  = { this };
 
 public:
     ExportMusicXml(Score* s)
+        : muse::Injectable(s->iocContext())
     {
         m_score = s;
         m_tick = { 0, 1 };
@@ -384,7 +386,7 @@ public:
     void symbol(Symbol const* const sym, staff_idx_t staff);
     void systemText(StaffTextBase const* const text, staff_idx_t staff);
     void tempoText(TempoText const* const text, staff_idx_t staff);
-    void harmony(Harmony const* const, FretDiagram const* const fd, int offset = 0);
+    void harmony(Harmony const* const, FretDiagram const* const fd, const Fraction& offset = Fraction(0, 1));
     Score* score() const { return m_score; }
     double getTenthsFromInches(double) const;
     double getTenthsFromDots(double) const;
@@ -436,7 +438,7 @@ private:
 
     static String elementPosition(const ExportMusicXml* const expMxml, const EngravingItem* const elm);
     static String positioningAttributesForTboxText(const PointF position, float spatium);
-    static void identification(XmlWriter& xml, Score const* const score);
+    void identification(XmlWriter& xml, Score const* const score);
 
     Score* m_score = nullptr;
     XmlWriter m_xml;
@@ -460,6 +462,42 @@ private:
     TrillHash m_trillStop;
     MxmlInstrumentMap m_instrMap;
 };
+
+//---------------------------------------------------------
+//   fractionToStdString
+//---------------------------------------------------------
+
+#ifdef DEBUG_TICK
+static std::string fractionToStdString(const Fraction& f)
+{
+    if (!f.isValid()) {
+        return "<invalid>";
+    }
+    String res { f.toString() };
+    res += String(u" (%1)").arg(String::number(f.ticks()));
+    return res.toStdString();
+}
+
+#endif
+
+//---------------------------------------------------------
+//   durElemTicksToStdString
+//---------------------------------------------------------
+
+#ifdef DEBUG_TICK
+static std::string durElemTicksToStdString(const DurationElement& d)
+{
+    String res;
+    res += String(u" ticks %1").arg(d.ticks().toString());
+    res += String(u" (%1)").arg(String::number(d.ticks().ticks()));
+    res += String(u" globalTicks %1").arg(d.globalTicks().toString());
+    res += String(u" (%1)").arg(String::number(d.globalTicks().ticks()));
+    res += String(u" actualTicks %1").arg(d.actualTicks().toString());
+    res += String(u" (%1)").arg(String::number(d.actualTicks().ticks()));
+    return res.toStdString();
+}
+
+#endif
 
 //---------------------------------------------------------
 //   positionToString
@@ -968,7 +1006,7 @@ static void glissando(const Glissando* gli, int number, bool start, Notations& n
         tagName += ExportMusicXml::positioningAttributes(gli, start);
     }
     notations.tag(xml, gli);
-    if (start && gli->showText() && gli->text() != "") {
+    if (start && gli->showText() && !gli->text().empty()) {
         xml.tagRaw(tagName, gli->text());
     } else {
         xml.tagRaw(tagName);
@@ -1133,37 +1171,12 @@ static void findTrills(const Measure* const measure, track_idx_t strack, track_i
 // helpers for ::calcDivisions
 //---------------------------------------------------------
 
-typedef std::vector<int> IntVector;
-static IntVector integers;
-static IntVector primes;
+typedef std::set<Fraction> FractionSet;
+static FractionSet fractions;
 
-// check if all integers can be divided by d
-
-static bool canDivideBy(int d)
+static void addFraction(const Fraction& len)
 {
-    bool res = true;
-    for (size_t i = 0; i < integers.size(); i++) {
-        if ((integers[i] <= 1) || ((integers[i] % d) != 0)) {
-            res = false;
-        }
-    }
-    return res;
-}
-
-// divide all integers by d
-
-static void divideBy(int d)
-{
-    for (size_t i = 0; i < integers.size(); i++) {
-        integers[i] /= d;
-    }
-}
-
-static void addInteger(int len)
-{
-    if (len > 0 && !muse::contains(integers, len)) {
-        integers.push_back(len);
-    }
+    fractions.insert(len.reduced());
 }
 
 //---------------------------------------------------------
@@ -1172,18 +1185,18 @@ static void addInteger(int len)
 
 void ExportMusicXml::calcDivMoveToTick(const Fraction& t)
 {
-    if (t < m_tick) {
+    if (t < tick()) {
 #ifdef DEBUG_TICK
-        LOGD("backup %d", (tick - t).ticks());
+        LOGD() << "backup " << fractionToStdString(tick() - t);
 #endif
-        addInteger((m_tick - t).ticks());
-    } else if (t > m_tick) {
+        addFraction(tick() - t);
+    } else if (t > tick()) {
 #ifdef DEBUG_TICK
-        LOGD("forward %d", (t - tick).ticks());
+        LOGD() << "forward " << fractionToStdString(t - tick());
 #endif
-        addInteger((t - m_tick).ticks());
+        addFraction(t - tick());
     }
-    m_tick = t;
+    tick() = t;
 }
 
 //---------------------------------------------------------
@@ -1203,24 +1216,13 @@ static bool isTwoNoteTremolo(Chord* chord)
 
 // Length of time in MusicXML is expressed in "units", which should allow expressing all time values
 // as an integral number of units. Divisions contains the number of units in a quarter note.
-// MuseScore uses division (480) midi ticks to represent a quarter note, which expresses all note values
-// plus triplets and quintuplets as integer values. Solution is to collect all time values required,
-// and divide them by the highest common denominator, which is implemented as a series of
-// divisions by prime factors. Initialize the list with division to make sure a quarter note can always
-// be written as an integral number of units.
-
-/**
- */
+// Compute divisions by finding all fractions used to move through the score in MusicXML
+// and computing the least common multiple of these fractions numerator and of fraction 1/4.
 
 void ExportMusicXml::calcDivisions()
 {
     // init
-    integers.clear();
-    primes.clear();
-    integers.push_back(Constants::DIVISION);
-    primes.push_back(2);
-    primes.push_back(3);
-    primes.push_back(5);
+    fractions.clear();
 
     const std::vector<Part*>& il = m_score->parts();
 
@@ -1246,7 +1248,7 @@ void ExportMusicXml::calcDivisions()
 #ifdef DEBUG_TICK
                             LOGD("figuredbass tick %d duration %d", fb->tick().ticks(), fb->ticks().ticks());
 #endif
-                            addInteger(fb->ticks().ticks());
+                            addFraction(fb->ticks());
                         }
                     }
 
@@ -1272,9 +1274,10 @@ void ExportMusicXml::calcDivisions()
                             }
                         }
 #ifdef DEBUG_TICK
-                        LOGD("chordrest tick %d duration %d", _tick.ticks(), l.ticks());
+                        LOGD() << "chordrest tick " << fractionToStdString(el->tick())
+                               << " tickLen" << durElemTicksToStdString(*toChordRest(el));
 #endif
-                        addInteger(l.ticks());
+                        addFraction(l);
                         m_tick += l;
                     }
                 }
@@ -1284,17 +1287,17 @@ void ExportMusicXml::calcDivisions()
         }
     }
 
-    // do it: divide by all primes as often as possible
-    for (size_t u = 0; u < primes.size(); u++) {
-        while (canDivideBy(primes[u])) {
-            divideBy(primes[u]);
-        }
+    // compute divisions
+    int divisions { 4 };  // ensure divisions > 0 for half and whole note
+    for (auto f : fractions) {
+        divisions = std::lcm(divisions, f.denominator());
     }
+    divisions /= 4;
 
-    m_div = Constants::DIVISION / integers[0];
 #ifdef DEBUG_TICK
-    LOGD("divisions=%d div=%d", integers[0], div);
+    LOGD("divisions %d", divisions);
 #endif
+    m_div = divisions;
 }
 
 //---------------------------------------------------------
@@ -2123,7 +2126,17 @@ void ExportMusicXml::barlineRight(const Measure* const m, const track_idx_t stra
 
 static int calculateTimeDeltaInDivisions(const Fraction& t1, const Fraction& t2, const int divisions)
 {
-    return (t1 - t2).ticks() / divisions;
+    const Fraction resAsFraction { (4 * divisions * (t1 - t2)) };
+    return resAsFraction.reduced().numerator();
+}
+
+//---------------------------------------------------------
+//   calculateDurationInDivisions
+//---------------------------------------------------------
+
+static int calculateDurationInDivisions(const Fraction& tick, const int divisions)
+{
+    return calculateTimeDeltaInDivisions(tick, Fraction { 0, 1 }, divisions);
 }
 
 //---------------------------------------------------------
@@ -2827,7 +2840,7 @@ static void writeAccidental(XmlWriter& xml, const String& tagName, const Acciden
 {
     if (acc) {
         String s = accidentalType2MxmlString(acc->accidentalType());
-        if (s != "") {
+        if (!s.empty()) {
             XmlWriter::Attributes attrs;
             if (s == "other") {
                 attrs = { { "smufl", accidentalType2SmuflMxmlString(acc->accidentalType()) } };
@@ -2857,6 +2870,34 @@ static void writeAccidental(XmlWriter& xml, const String& tagName, const Acciden
             addColorAttr(acc, attrs);
             xml.tag(AsciiStringView(tag.toStdString()), attrs, s);
         }
+    }
+}
+
+//---------------------------------------------------------
+//   writeDisplayName
+//---------------------------------------------------------
+
+static void writeDisplayName(XmlWriter& xml, const String& partName)
+{
+    String displayText;
+    for (size_t i = 0; i < partName.size(); ++i) {
+        Char ch = partName.at(i);
+        if (ch != u'♭' && ch != u'♯') {
+            displayText += ch;
+        } else {
+            if (!displayText.empty()) {
+                xml.tag("display-text", displayText);
+            }
+            if (ch == u'♭') {
+                xml.tag("accidental-text", "flat");
+            } else if (ch == u'♯') {
+                xml.tag("accidental-text", "sharp");
+            }
+            displayText.clear();
+        }
+    }
+    if (!displayText.empty()) {
+        xml.tag("display-text", displayText);
     }
 }
 
@@ -3335,7 +3376,7 @@ static void writeChordLines(const Chord* const chord, XmlWriter& xml, Notations&
             default:
                 LOGD("unknown ChordLine subtype %d", int(cl->chordLineType()));
             }
-            if (subtype != "") {
+            if (!subtype.empty()) {
                 notations.tag(xml, e);
                 articulations.tag(xml);
                 xml.tagRaw(subtype);
@@ -3476,7 +3517,7 @@ void ExportMusicXml::chordAttributes(Chord* chord, Notations& notations, Technic
         SymId sid = a->symId();
         String mxmlOrnam = symIdToOrnam(sid);
 
-        if (mxmlOrnam != "") {
+        if (!mxmlOrnam.empty()) {
             String placement;
 
             if (!a->isStyled(Pid::ARTICULATION_ANCHOR) && a->anchor() != ArticulationAnchor::AUTO) {
@@ -3529,20 +3570,20 @@ void ExportMusicXml::chordAttributes(Chord* chord, Notations& notations, Technic
         */
 
         String mxmlTechn = symIdToTechn(sid);
-        if (mxmlTechn != "") {
+        if (!mxmlTechn.empty()) {
             notations.tag(m_xml, a);
             technical.tag(m_xml);
             mxmlTechn += color2xml(a);
             mxmlTechn += ExportMusicXml::positioningAttributes(a);
             if (sid == SymId::stringsHarmonic) {
-                if (placement != "") {
+                if (!placement.empty()) {
                     attr += String(u" placement=\"%1\"").arg(placement);
                 }
                 m_xml.startElementRaw(mxmlTechn + attr);
                 m_xml.tag("natural");
                 m_xml.endElement();
             } else {
-                if (placement != "") {
+                if (!placement.empty()) {
                     attr += String(u" placement=\"%1\"").arg(placement);
                 }
                 m_xml.tagRaw(mxmlTechn + attr);
@@ -4184,13 +4225,15 @@ void ExportMusicXml::chord(Chord* chord, staff_idx_t staff, const std::vector<Ly
      */
     std::vector<Note*> nl = chord->notes();
     bool grace = chord->isGrace();
+#ifdef DEBUG_TICK
+    LOGD() << "oldtick " << fractionToStdString(tick())
+           << " grace " << grace;
+#endif
     if (!grace) {
         m_tick += chord->actualTicks();
     }
 #ifdef DEBUG_TICK
-    LOGD("ExportMusicXml::chord() oldtick=%d", tick);
-    LOGD("notetype=%d grace=%d", gracen, grace);
-    LOGD(" newtick=%d", tick);
+    LOGD() << "newtick " << fractionToStdString(tick());
 #endif
 
     for (Note* note : nl) {
@@ -4224,7 +4267,7 @@ void ExportMusicXml::chord(Chord* chord, staff_idx_t staff, const std::vector<Ly
 
         // duration
         if (!grace) {
-            m_xml.tag("duration", stretchCorrActFraction(note).ticks() / m_div);
+            m_xml.tag("duration", calculateDurationInDivisions(stretchCorrActFraction(note), m_div));
         }
 
         if (!isCueNote(note)) {
@@ -4258,6 +4301,13 @@ void ExportMusicXml::chord(Chord* chord, staff_idx_t staff, const std::vector<Ly
         writeType(m_xml, note);
         for (NoteDot* dot : note->dots()) {
             String dotTag = u"dot";
+            if (note->userDotPosition() != engraving::DirectionV::AUTO) {
+                if (note->dotPosition() == engraving::DirectionV::UP) {
+                    dotTag += u" placement=\"above\"";
+                } else {
+                    dotTag += u" placement=\"below\"";
+                }
+            }
             dotTag += color2xml(dot);
             dotTag += elementPosition(this, dot);
             m_xml.tagRaw(dotTag);
@@ -4266,7 +4316,7 @@ void ExportMusicXml::chord(Chord* chord, staff_idx_t staff, const std::vector<Ly
         writeTimeModification(m_xml, note->chord()->tuplet(), tremoloCorrection(note));
 
         // no stem for whole notes and beyond
-        if (chord->noStem() || chord->measure()->stemless(chord->staffIdx())) {
+        if (chord->noStem() || chord->measure()->stemless(chord->staffIdx()) || (chord->stem() && !chord->stem()->visible())) {
             m_xml.tag("stem", "none");
         } else if (const Stem* stem = note->chord()->stem()) {
             String stemTag = u"stem";
@@ -4377,7 +4427,7 @@ void ExportMusicXml::rest(Rest* rest, staff_idx_t staff, const std::vector<Lyric
 {
     static char16_t table2[]  = u"CDEFGAB";
 #ifdef DEBUG_TICK
-    LOGD("ExportMusicXml::rest() oldtick=%d", tick);
+    LOGD() << "oldtick " << fractionToStdString(tick());
 #endif
     m_attr.doAttr(m_xml, false);
 
@@ -4447,10 +4497,11 @@ void ExportMusicXml::rest(Rest* rest, staff_idx_t staff, const std::vector<Lyric
     }
     m_tick += tickLen;
 #ifdef DEBUG_TICK
-    LOGD(" tickLen=%d newtick=%d", tickLen, tick);
+    LOGD() << "tickLen " << fractionToStdString(tickLen)
+           << "newtick " << fractionToStdString(tick());
 #endif
 
-    m_xml.tag("duration", tickLen.ticks() / m_div);
+    m_xml.tag("duration", calculateDurationInDivisions(tickLen, m_div));
 
     // for a single-staff part, staff is 0, which needs to be corrected
     // to calculate the correct voice number
@@ -5413,7 +5464,7 @@ void ExportMusicXml::ottava(Ottava const* const ot, staff_idx_t staff, const Fra
         }
     }
 
-    if (octaveShiftXml != "") {
+    if (!octaveShiftXml.empty()) {
         directionTag(m_xml, m_attr, ot);
         m_xml.startElement("direction-type");
         octaveShiftXml += color2xml(ot);
@@ -5669,7 +5720,7 @@ void ExportMusicXml::dynamic(Dynamic const* const dyn, staff_idx_t staff)
 
     if (muse::contains(set, dynTypeName) && !hasCustomText) {
         m_xml.tagRaw(dynTypeName);
-    } else if (dynTypeName != "") {
+    } else if (!dynTypeName.empty()) {
         static std::map<ushort, Char> map = {
             { 0xE520, u'p' },
             { 0xE521, u'm' },
@@ -5902,19 +5953,19 @@ static void directionJump(XmlWriter& xml, const Jump* const jp)
         }
     }
 
-    if (sound != "") {
+    if (!sound.empty()) {
         xml.startElement("direction", { { "placement", (jp->placement() == PlacementV::BELOW) ? "below" : "above" } });
         xml.startElement("direction-type");
         String attrs = color2xml(jp);
         attrs += ExportMusicXml::positioningAttributes(jp);
-        if (type != "") {
+        if (!type.empty()) {
             xml.tagRaw(type + attrs);
         }
-        if (words != "") {
+        if (!words.empty()) {
             xml.tagRaw(u"words" + attrs, words);
         }
         xml.endElement();
-        if (sound != "") {
+        if (!sound.empty()) {
             xml.tagRaw(u"sound " + sound);
         }
         xml.endElement();
@@ -6020,7 +6071,7 @@ static void directionMarker(XmlWriter& xml, const Marker* const m, const std::ve
             words = m->xmlText();
         }
         const String codaLabel = findCodaLabel(jumps, m->label());
-        if (codaLabel == "") {
+        if (codaLabel.empty()) {
             sound = u"tocoda=\"1\"";
         } else {
             sound = u"tocoda=\"" + codaLabel + u"\"";
@@ -6288,28 +6339,6 @@ static void measureStyle(XmlWriter& xml, Attributes& attr, const Measure* const 
 }
 
 //---------------------------------------------------------
-//  findFretDiagram
-//---------------------------------------------------------
-
-static const FretDiagram* findFretDiagram(track_idx_t strack, track_idx_t etrack, track_idx_t track, Segment* seg)
-{
-    if (seg->segmentType() == SegmentType::ChordRest) {
-        for (const EngravingItem* e : seg->annotations()) {
-            track_idx_t wtrack = muse::nidx;       // track to write annotation
-
-            if (strack <= e->track() && e->track() < etrack) {
-                wtrack = findTrackForAnnotations(e->track(), seg);
-            }
-
-            if (track == wtrack && e->type() == ElementType::FRET_DIAGRAM) {
-                return static_cast<const FretDiagram*>(e);
-            }
-        }
-    }
-    return 0;
-}
-
-//---------------------------------------------------------
 //  commonAnnotations
 //---------------------------------------------------------
 
@@ -6356,47 +6385,104 @@ static bool commonAnnotations(ExportMusicXml* exp, const EngravingItem* e, staff
 //  annotations
 //---------------------------------------------------------
 
-/*
- * Write annotations that are attached to chords or rests
- */
-
-// In MuseScore, EngravingItem::FRET_DIAGRAM and EngravingItem::HARMONY are separate annotations,
-// in MusicXML they are combined in the harmony element. This means they have to be matched.
-// TODO: replace/repair current algorithm (which can only handle one FRET_DIAGRAM and one HARMONY)
+// Only handle common annotations, others are handled elsewhere
 
 static void annotations(ExportMusicXml* exp, track_idx_t strack, track_idx_t etrack, track_idx_t track, staff_idx_t sstaff, Segment* seg)
 {
-    if (seg->segmentType() == SegmentType::ChordRest) {
-        const FretDiagram* fd = findFretDiagram(strack, etrack, track, seg);
-        // if (fd) LOGD("annotations seg %p found fretboard diagram %p", seg, fd);
+    for (const EngravingItem* e : seg->annotations()) {
+        track_idx_t wtrack = muse::nidx;       // track to write annotation
 
-        for (const EngravingItem* e : seg->annotations()) {
-            track_idx_t wtrack = muse::nidx;       // track to write annotation
+        if (strack <= e->track() && e->track() < etrack) {
+            wtrack = findTrackForAnnotations(e->track(), seg);
+        }
 
-            if (strack <= e->track() && e->track() < etrack) {
-                wtrack = findTrackForAnnotations(e->track(), seg);
-            }
-
-            if (track == wtrack) {
-                if (commonAnnotations(exp, e, sstaff)) {
-                    // already handled
-                } else if (e->isHarmony()) {
-                    // LOGD("annotations seg %p found harmony %p", seg, e);
-                    exp->harmony(toHarmony(e), fd);
-                    fd = nullptr;           // make sure to write only once ...
-                } else if (e->isFermata() || e->isFiguredBass() || e->isFretDiagram() || e->isJump()) {
-                    // handled separately by chordAttributes(), figuredBass(), findFretDiagram() or ignored
-                } else {
-                    LOGD("direction type %s at tick %d not implemented",
-                         e->typeName(), seg->tick().ticks());
-                }
+        if (track == wtrack) {
+            if (commonAnnotations(exp, e, sstaff)) {
+                // already handled
             }
         }
-        if (fd) {
-            // found fd but no harmony, cannot write (MusicXML would be invalid)
-            LOGD("seg %p found fretboard diagram %p w/o harmony: cannot write",
-                 seg, fd);
+    }
+}
+
+//---------------------------------------------------------
+//  harmonies
+//---------------------------------------------------------
+
+/*
+ * Helper method to export harmonies and chord diagrams for a single segment.
+ */
+
+static void segmentHarmonies(ExportMusicXml* exp, track_idx_t track, Segment* seg, Fraction offset)
+{
+    const std::vector<EngravingItem*> diagrams = seg->findAnnotations(ElementType::FRET_DIAGRAM, track, track);
+    std::vector<EngravingItem*> harmonies = seg->findAnnotations(ElementType::HARMONY, track, track);
+
+    for (const EngravingItem* d : diagrams) {
+        const FretDiagram* diagram = toFretDiagram(d);
+        const Harmony* harmony = diagram->harmony();
+        if (harmony) {
+            exp->harmony(harmony, diagram, offset);
+        } else if (!harmonies.empty()) {
+            const EngravingItem* defaultHarmony = harmonies.back();
+            exp->harmony(toHarmony(defaultHarmony), diagram, offset);
+            harmonies.pop_back();
+        } else {
+            // Found a fret diagram with no harmony, ignore
+            LOGD("segmentHarmonies() seg %p found fretboard diagram %p w/o harmony: cannot write", seg, diagram);
         }
+    }
+
+    for (const EngravingItem* h : harmonies) {
+        exp->harmony(toHarmony(h), 0, offset);
+    }
+}
+
+/*
+ * Write harmonies and fret diagrams that are attached to chords or rests.
+ *
+ * There are fondamental differences between the ways Musescore and MusicXML handle harmonies (Chord symbols)
+ * and fretboard diagrams.
+ *
+ * In MuseScore, the Harmony element is now a child of FretboardDiagram BUT in previous versions,
+ * both elements were independant siblings so we have to handle both cases.
+ * In MusicXML, fretboard diagram is always contained in a harmony element.
+ *
+ * In MuseScore, Harmony elements are not always linked to notes, and each Harmony will be contained
+ * in a `ChordRest` Segment.
+ * In MusicXML, those successive Harmony elements must be exported before the note with different offsets.
+ *
+ * Edge cases that we simply cannot handle:
+ *  - as of MusicXML 3.1, there is no way to represent a diagram without an associated chord symbol,
+ * so when we encounter such an object in MuseScore, we simply cannot export it.
+ *  - If a ChordRest segment contans a FretboardDiagram with no harmonies and several different Harmony siblings,
+ * we simply have to pick a random one to export.
+ */
+
+static void harmonies(ExportMusicXml* exp, track_idx_t track, Segment* seg)
+{
+    Fraction offset = { 0, 1 };
+    segmentHarmonies(exp, track, seg, offset);
+
+    // Edge case: find remaining `harmony` elements.
+    // Suppose you have one single whole note in the measure but several chord symbols.
+    // In MuseScore, each `Harmony` object will be stored in a `ChordRest` Segment that contains
+    // no other Chords.
+    // But in MusicXML, you are supposed to output all `harmony` elements before the first `note`,
+    // with different `offset` parameters.
+    //
+    // That's why we need to explore the remaining segments to find
+    // `Harmony` and `FretDiagram` elements in Segments without Chords and output them now.
+    for (Segment* seg1 = seg->next(); seg1; seg1 = seg1->next()) {
+        if (!seg1->isChordRestType()) {
+            continue;
+        }
+
+        const EngravingItem* el1 = seg1->element(track);
+        if (el1) { // found a ChordRest, next harmony will be attached to this one
+            break;
+        }
+        offset = (seg1->tick() - seg->tick());
+        segmentHarmonies(exp, track, seg1, offset);
     }
 }
 
@@ -6443,14 +6529,14 @@ static void writeMusicXML(const FiguredBassItem* item, XmlWriter& xml, bool isOr
     // by the user, rather than automatically by the "duration" extend method.
     if (isOriginalFigure) {
         String strPrefix = Modifier2MusicXML(item->prefix());
-        if (strPrefix != "") {
+        if (!strPrefix.empty()) {
             xml.tag("prefix", strPrefix);
         }
         if (item->digit() != FBIDigitNone) {
             xml.tag("figure-number", item->digit());
         }
         String strSuffix = Modifier2MusicXML(item->suffix());
-        if (strSuffix != "") {
+        if (!strSuffix.empty()) {
             xml.tag("suffix", strSuffix);
         }
 
@@ -6460,7 +6546,7 @@ static void writeMusicXML(const FiguredBassItem* item, XmlWriter& xml, bool isOr
             if (item->contLine() == FiguredBassItem::ContLine::SIMPLE) {
                 xml.tag("extend", { { "type", "stop" } });
             } else if (item->contLine() == FiguredBassItem::ContLine::EXTENDED) {
-                bool hasFigure = (strPrefix != "" || item->digit() != FBIDigitNone || strSuffix != "");
+                bool hasFigure = (!strPrefix.empty() || item->digit() != FBIDigitNone || !strSuffix.empty());
                 if (hasFigure) {
                     xml.tag("extend", { { "type", "start" } });
                 } else {
@@ -6502,7 +6588,7 @@ static void writeMusicXML(const FiguredBass* item, XmlWriter& xml, bool isOrigin
         writeMusicXML(fbItem, xml, isOriginalFigure, crEndTick, fbEndTick);
     }
     if (writeDuration) {
-        xml.tag("duration", item->ticks().ticks() / divisions);
+        xml.tag("duration", calculateDurationInDivisions(item->ticks(), divisions));
     }
     xml.endElement();
 }
@@ -7060,7 +7146,7 @@ void ExportMusicXml::print(const Measure* const m, const int partNr, const int f
         }
     }
 
-    bool doBreak = mpc.scoreStart || (newSystemOrPage != "");
+    bool doBreak = mpc.scoreStart || (!newSystemOrPage.empty());
     bool doLayout = configuration()->musicxmlExportLayout();
 
     if (doBreak) {
@@ -7127,7 +7213,7 @@ void ExportMusicXml::print(const Measure* const m, const int partNr, const int f
             }
 
             m_xml.endElement();
-        } else if (newSystemOrPage != "") {
+        } else if (!newSystemOrPage.empty()) {
             m_xml.tagRaw(String(u"print%1").arg(newSystemOrPage));
         }
     }
@@ -7382,21 +7468,30 @@ static void partList(XmlWriter& xml, Score* score, MxmlInstrumentMap& instrMap)
 
         xml.startElementRaw(String(u"score-part id=\"P%1\"").arg(idx + 1));
         initInstrMap(instrMap, part->instruments(), score);
+        static const std::wregex acc(L"[♭♯]");
+        XmlWriter::Attributes attributes;
         // by default export the parts long name as part-name
-        if (part->longName() != "") {
-            xml.tag("part-name", MScoreTextToMXML::toPlainText(part->longName()));
-        } else {
-            if (part->partName() != "") {
-                // use the track name if no part long name
-                // to prevent an empty track name on import
-                xml.tag("part-name", { { "print-object", "no" } }, MScoreTextToMXML::toPlainText(part->partName()));
-            } else {
-                // part-name is required
-                xml.tag("part-name", "");
+        String partName = part->longName();
+        // use the track name if no part long name
+        if (partName.empty()) {
+            partName = part->partName();
+            if (!partName.empty()) {
+                attributes.push_back({ "print-object", "no" });
             }
         }
+        xml.tag("part-name", attributes, MScoreTextToMXML::toPlainText(partName).replace(u"♭", u"b").replace(u"♯", u"#"));
+        if (partName.contains(acc)) {
+            xml.startElement("part-name-display");
+            writeDisplayName(xml, partName);
+            xml.endElement();
+        }
         if (!part->shortName().isEmpty()) {
-            xml.tag("part-abbreviation", MScoreTextToMXML::toPlainText(part->shortName()));
+            xml.tag("part-abbreviation", MScoreTextToMXML::toPlainText(part->shortName()).replace(u"♭", u"b").replace(u"♯", u"#"));
+            if (part->shortName().contains(acc)) {
+                xml.startElement("part-abbreviation-display");
+                writeDisplayName(xml, part->shortName());
+                xml.endElement();
+            }
         }
 
         if (part->instrument()->useDrumset()) {
@@ -7572,6 +7667,10 @@ static void writeStaffDetails(XmlWriter& xml, const Part* part)
                 attributes.push_back({ "print-object", "no" });
             }
             xml.startElement("staff-details", attributes);
+
+            if (i > 0 && st->links() && st->links()->contains(part->staff(i - 1))) {
+                xml.tag("staff-type", "alternate");
+            }
 
             xml.tag("staff-lines", st->lines(Fraction(0, 1)));
             if (st->isTabStaff(Fraction(0, 1)) && instrument->stringData()) {
@@ -7899,21 +7998,8 @@ void ExportMusicXml::writeMeasureTracks(const Measure* const m,
                     }
                     m_tboxesBelowWritten = true;
                 }
+                harmonies(this, track, seg);
                 annotations(this, strack, etrack, track, partRelStaffNo, seg);
-                // look for more harmony
-                for (Segment* seg1 = seg->next(); seg1; seg1 = seg1->next()) {
-                    if (seg1->isChordRestType()) {
-                        const EngravingItem* el1 = seg1->element(track);
-                        if (el1) {           // found a ChordRest, next harmony will be attach to this one
-                            break;
-                        }
-                        for (EngravingItem* annot : seg1->annotations()) {
-                            if (annot->isHarmony() && annot->track() == track) {
-                                harmony(toHarmony(annot), 0, (seg1->tick() - seg->tick()).ticks() / m_div);
-                            }
-                        }
-                    }
-                }
                 figuredBass(m_xml, strack, etrack, track, static_cast<const ChordRest*>(el), fbMap, m_div);
                 spannerStart(this, strack, etrack, track, partRelStaffNo, seg);
             }
@@ -8040,7 +8126,7 @@ void ExportMusicXml::writeMeasure(const Measure* const m,
     // output attributes with the first actual measure (pickup or regular)
     if (isFirstActualMeasure) {
         m_attr.doAttr(m_xml, true);
-        m_xml.tag("divisions", Constants::DIVISION / m_div);
+        m_xml.tag("divisions", m_div);
     }
 
     // output attributes at start of measure: key, time
@@ -8443,7 +8529,7 @@ static void writeMusicXML(const FretDiagram* item, XmlWriter& xml)
 //   harmony
 //---------------------------------------------------------
 
-void ExportMusicXml::harmony(Harmony const* const h, FretDiagram const* const fd, int offset)
+void ExportMusicXml::harmony(Harmony const* const h, FretDiagram const* const fd, const Fraction& offset)
 {
     // this code was probably in place to allow chord symbols shifted *right* to export with offset
     // since this was at once time the only way to get a chord to appear over beat 3 in an empty 4/4 measure
@@ -8561,8 +8647,10 @@ void ExportMusicXml::harmony(Harmony const* const h, FretDiagram const* const fd
             }
         }
 
-        if (offset > 0) {
-            m_xml.tag("offset", offset);
+        if (offset.isValid() && offset > Fraction(0, 1)) {
+            m_xml.tag("offset", calculateDurationInDivisions(offset, m_div));
+        } else {
+            LOGD("invalid offset");
         }
         if (fd) {
             writeMusicXML(fd, m_xml);

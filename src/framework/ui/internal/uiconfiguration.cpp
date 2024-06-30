@@ -226,6 +226,7 @@ ThemeInfo UiConfiguration::makeStandardTheme(const ThemeCode& codeKey) const
         { BACKGROUND_PRIMARY_COLOR, config.value("background_primary_color").toQString() },
         { BACKGROUND_SECONDARY_COLOR, config.value("background_secondary_color").toQString() },
         { BACKGROUND_TERTIARY_COLOR, config.value("background_tertiary_color").toQString() },
+        { BACKGROUND_QUARTERNARY_COLOR, config.value("background_quarternary_color").toQString() },
         { POPUP_BACKGROUND_COLOR, config.value("popup_background_color").toQString() },
         { PROJECT_TAB_COLOR, config.value("project_tab_color").toQString() },
         { TEXT_FIELD_COLOR, config.value("text_field_color").toQString() },
@@ -234,7 +235,7 @@ ThemeInfo UiConfiguration::makeStandardTheme(const ThemeCode& codeKey) const
         { STROKE_SECONDARY_COLOR, config.value("stroke_secondary_color").toQString() },
         { BUTTON_COLOR, config.value("button_color").toQString() },
         { FONT_PRIMARY_COLOR, config.value("font_primary_color").toQString() },
-        { FONT_SECONDARY_COLOR, config.value("font_primary_color").toQString() },
+        { FONT_SECONDARY_COLOR, config.value("font_secondary_color").toQString() },
         { LINK_COLOR, config.value("link_color").toQString() },
         { FOCUS_COLOR, config.value("focus_color").toQString() },
         { WHITE_COLOR, config.value("white_color").toQString() },
@@ -313,12 +314,7 @@ ThemeList UiConfiguration::themes() const
 
 QStringList UiConfiguration::possibleFontFamilies() const
 {
-#ifdef MU_QT5_COMPAT
-    QFontDatabase db;
-    QStringList allFonts = db.families();
-#else
     QStringList allFonts = QFontDatabase::families();
-#endif
     QStringList smuflFonts
         = { "Bravura", "Campania", "Edwin", "Finale Broadway", "Finale Maestro", "Gootville", "Leland", "MScore", "MuseJazz", "Petaluma" };
     for (const QString& font : smuflFonts) {
@@ -535,12 +531,7 @@ std::string UiConfiguration::defaultFontFamily() const
 #ifdef Q_OS_WIN
     static const QString defaultWinFamily = "Segoe UI";
 
-#ifdef MU_QT5_COMPAT
-    QFontDatabase fontDatabase;
-    if (fontDatabase.hasFamily(defaultWinFamily)) {
-#else
     if (QFontDatabase::hasFamily(defaultWinFamily)) {
-#endif
         return defaultWinFamily.toStdString();
     }
 #endif

@@ -160,7 +160,7 @@ const std::array<StyleDef::StyleValue, size_t(Sid::STYLES)> StyleDef::styleValue
     { Sid::dividerRightX,           "dividerRightX",           0.0 },
     { Sid::dividerRightY,           "dividerRightY",           0.0 },
 
-    { Sid::clefLeftMargin,          "clefLeftMargin",          Spatium(0.75) },     // 0.64 (gould: <= 1)
+    { Sid::clefLeftMargin,          "clefLeftMargin",          Spatium(0.75) },
     { Sid::keysigLeftMargin,        "keysigLeftMargin",        Spatium(0.5) },
     { Sid::ambitusMargin,           "ambitusMargin",           Spatium(0.5) },
 
@@ -168,12 +168,12 @@ const std::array<StyleDef::StyleValue, size_t(Sid::STYLES)> StyleDef::styleValue
     { Sid::timesigScale,            "timesigScale",            ScaleF(1.0, 1.0) },
     { Sid::midClefKeyRightMargin,   "midClefKeyRightMargin",   Spatium(1.0) },
     { Sid::clefKeyRightMargin,      "clefKeyRightMargin",      Spatium(0.8) },
-    { Sid::clefKeyDistance,         "clefKeyDistance",         Spatium(1.0) },   // gould: 1 - 1.25
+    { Sid::clefKeyDistance,         "clefKeyDistance",         Spatium(0.75) },
     { Sid::clefTimesigDistance,     "clefTimesigDistance",     Spatium(1.0) },
-    { Sid::keyTimesigDistance,      "keyTimesigDistance",      Spatium(1.0) },    // gould: 1 - 1.5
+    { Sid::keyTimesigDistance,      "keyTimesigDistance",      Spatium(1.0) },
     { Sid::keyBarlineDistance,      "keyBarlineDistance",      Spatium(1.0) },
-    { Sid::systemHeaderDistance,    "systemHeaderDistance",    Spatium(2.5) },     // gould: 2.5
-    { Sid::systemHeaderTimeSigDistance, "systemHeaderTimeSigDistance", Spatium(2.0) },  // gould: 2.0
+    { Sid::systemHeaderDistance,    "systemHeaderDistance",    Spatium(2.5) },
+    { Sid::systemHeaderTimeSigDistance, "systemHeaderTimeSigDistance", Spatium(2.0) },
     { Sid::systemTrailerRightMargin, "systemTrailerRightMargin", Spatium(0.5) },
 
     { Sid::clefBarlineDistance,     "clefBarlineDistance",     Spatium(0.5) },
@@ -185,6 +185,7 @@ const std::array<StyleDef::StyleValue, size_t(Sid::STYLES)> StyleDef::styleValue
     { Sid::stemLengthSmall,         "stemLengthSmall",         PropertyValue(2.25) },
     { Sid::shortStemStartLocation,  "shortStemStartLocation",  1 },
     { Sid::shortestStem,            "shortestStem",            PropertyValue(2.5) },
+    { Sid::combineVoice,            "combineVoice",            true },
     { Sid::beginRepeatLeftMargin,   "beginRepeatLeftMargin",   Spatium(1.0) },
     { Sid::minNoteDistance,         "minNoteDistance",         Spatium(0.5) },
     { Sid::barNoteDistance,         "barNoteDistance",         Spatium(1.3) },     // was 1.2
@@ -204,10 +205,16 @@ const std::array<StyleDef::StyleValue, size_t(Sid::STYLES)> StyleDef::styleValue
     { Sid::stemSlashPosition,         "stemSlashPosition",         Spatium(2.0) },
     { Sid::stemSlashAngle,          "stemSlashAngle",          40.0 },
     { Sid::stemSlashThickness,          "stemSlashThickness",          Spatium(0.125), },
-    { Sid::accidentalDistance,      "accidentalDistance",      Spatium(0.22) },
+    { Sid::accidentalDistance,      "accidentalDistance",      Spatium(0.25) },
     { Sid::accidentalNoteDistance,  "accidentalNoteDistance",  Spatium(0.25) },
     { Sid::bracketedAccidentalPadding,  "bracketedAccidentalPadding",  Spatium(0.175) }, // Padding inside parentheses for bracketed accidentals
-    { Sid::alignAccidentalsLeft,    "alignAccidentalsLeft",    false },   // When laid out in columns, whether accidentals align left or right. Musescore <= 3.5 uses left alignment.
+    { Sid::alignAccidentalsLeft,    "alignAccidentalsLeft",    false },   // OBSOLETE
+
+    { Sid::accidentalOrderFollowsNoteDisplacement, "accidentalOrderFollowsNoteDisplacement", false },
+    { Sid::alignAccidentalOctavesAcrossSubChords, "alignAccidentalOctavesAcrossSubChords", false },
+    { Sid::keepAccidentalSecondsTogether, "keepAccidentalSecondsTogether", false },
+    { Sid::alignOffsetOctaveAccidentals, "alignOffsetOctaveAccidentals", false },
+
     { Sid::keysigAccidentalDistance, "keysigAccidentalDistance", Spatium(0.3) },
     { Sid::keysigNaturalDistance,   "keysigNaturalDistance",   Spatium(0.4) },
 
@@ -473,6 +480,8 @@ const std::array<StyleDef::StyleValue, size_t(Sid::STYLES)> StyleDef::styleValue
       "alwaysShowSquareBracketsWhenEmptyStavesAreHidden", false },
     { Sid::hideInstrumentNameIfOneInstrument,
       "hideInstrumentNameIfOneInstrument", true },
+    { Sid::firstSystemInstNameVisibility, "firstSystemInsNameVisibility", PropertyValue(int(InstrumentLabelVisibility::LONG)) },
+    { Sid::subsSystemInstNameVisibility, "subsSystemInstNameVisibility", PropertyValue(int(InstrumentLabelVisibility::SHORT)) },
     { Sid::gateTime,                "gateTime",                PropertyValue(100) },
     { Sid::tenutoGateTime,          "tenutoGateTime",          PropertyValue(100) },
     { Sid::staccatoGateTime,        "staccatoGateTime",        PropertyValue(50) },
@@ -654,10 +663,15 @@ const std::array<StyleDef::StyleValue, size_t(Sid::STYLES)> StyleDef::styleValue
     { Sid::scaleBarlines,           "scaleBarlines",           false },
     { Sid::barGraceDistance,        "barGraceDistance",        Spatium(1.0) },
     { Sid::minVerticalDistance,     "minVerticalDistance",     Spatium(0.5) },
+    { Sid::skylineMinHorizontalClearance, "minVerticalDistance", Spatium(0.25) },
     { Sid::ornamentStyle,           "ornamentStyle",           int(OrnamentStyle::DEFAULT) },
     { Sid::spatium,                 "Spatium",                 24.8 },
 
     { Sid::autoplaceHairpinDynamicsDistance, "autoplaceHairpinDynamicsDistance", Spatium(0.5) },
+
+    { Sid::dynamicsHairpinVoiceBasedPlacement, "dynamicsHairpinVoiceBasedPlacement", DirectionV::AUTO },
+    { Sid::dynamicsHairpinsAutoCenterOnGrandStaff, "dynamicsHairpinsAutoCenterOnGrandStaff", true },
+    { Sid::dynamicsHairpinsAboveForVocalStaves, "dynamicsHairpinsAboveForVocalStaves", true },
 
     { Sid::dynamicsOverrideFont,    "dynamicsOverrideFont",    false },
     { Sid::dynamicsFont,            "dynamicsFont",            PropertyValue(String(u"Leland")) },

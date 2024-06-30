@@ -190,6 +190,7 @@
             <HairPin>
               <subtype>3</subtype>
               <lineVisible>0</lineVisible>
+              <direction>down</direction>
               </HairPin>
             <next>
               <location>
@@ -672,6 +673,7 @@
           <Dynamic>
             <subtype>p</subtype>
             <velocity>49</velocity>
+            <direction>down</direction>
             </Dynamic>
           <Chord>
             <durationType>quarter</durationType>
@@ -707,6 +709,7 @@
             <HairPin>
               <subtype>2</subtype>
               <lineVisible>0</lineVisible>
+              <direction>down</direction>
               </HairPin>
             <next>
               <location>
@@ -1293,6 +1296,7 @@
           <Dynamic>
             <subtype>f</subtype>
             <velocity>96</velocity>
+            <direction>down</direction>
             </Dynamic>
           <Chord>
             <durationType>eighth</durationType>
@@ -1309,6 +1313,7 @@
             <HairPin>
               <subtype>3</subtype>
               <lineVisible>0</lineVisible>
+              <direction>down</direction>
               </HairPin>
             <next>
               <location>
@@ -1816,6 +1821,7 @@
           <Dynamic>
             <subtype>p</subtype>
             <velocity>49</velocity>
+            <direction>down</direction>
             </Dynamic>
           <Spanner type="HairPin">
             <prev>

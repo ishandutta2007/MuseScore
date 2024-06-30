@@ -36,17 +36,14 @@ namespace mu::notation {
 //   SelectDialog
 //---------------------------------------------------------
 
-class SelectDialog : public QDialog, Ui::SelectDialog
+class SelectDialog : public QDialog, Ui::SelectDialog, public muse::Injectable
 {
     Q_OBJECT
-    INJECT(context::IGlobalContext, globalContext)
+
+    muse::Inject<context::IGlobalContext> globalContext = { this };
 
 public:
     SelectDialog(QWidget* parent = nullptr);
-
-#ifdef MU_QT5_COMPAT
-    SelectDialog(const SelectDialog& other);
-#endif
 
     bool doReplace() const;
     bool doAdd() const;

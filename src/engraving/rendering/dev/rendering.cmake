@@ -33,6 +33,8 @@ set(RENDERING_DEV_SRC
     ${CMAKE_CURRENT_LIST_DIR}/beamtremololayout.h
     ${CMAKE_CURRENT_LIST_DIR}/chordlayout.cpp
     ${CMAKE_CURRENT_LIST_DIR}/chordlayout.h
+    ${CMAKE_CURRENT_LIST_DIR}/accidentalslayout.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/accidentalslayout.h
     ${CMAKE_CURRENT_LIST_DIR}/tupletlayout.cpp
     ${CMAKE_CURRENT_LIST_DIR}/tupletlayout.h
     ${CMAKE_CURRENT_LIST_DIR}/verticalgapdata.cpp
@@ -59,6 +61,8 @@ set(RENDERING_DEV_SRC
     ${CMAKE_CURRENT_LIST_DIR}/segmentlayout.h
     ${CMAKE_CURRENT_LIST_DIR}/modifydom.cpp
     ${CMAKE_CURRENT_LIST_DIR}/modifydom.h
+    ${CMAKE_CURRENT_LIST_DIR}/alignmentlayout.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/alignmentlayout.h
 
     ${CMAKE_CURRENT_LIST_DIR}/passbase.cpp
     ${CMAKE_CURRENT_LIST_DIR}/passbase.h

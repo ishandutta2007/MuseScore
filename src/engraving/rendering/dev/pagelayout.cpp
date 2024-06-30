@@ -48,14 +48,15 @@
 #include "dom/tremolotwochord.h"
 #include "dom/tuplet.h"
 
-#include "tlayout.h"
-#include "systemlayout.h"
-#include "chordlayout.h"
+#include "arpeggiolayout.h"
 #include "beamlayout.h"
+#include "chordlayout.h"
 #include "measurelayout.h"
+#include "slurtielayout.h"
+#include "systemlayout.h"
+#include "tlayout.h"
 #include "tupletlayout.h"
 #include "verticalgapdata.h"
-#include "arpeggiolayout.h"
 
 #include "log.h"
 
@@ -360,6 +361,14 @@ void PageLayout::collectPage(LayoutContext& ctx)
                                         Fingering* fingering = toFingering(e);
                                         if (fingering->isOnCrossBeamSide()) {
                                             TLayout::layoutFingering(fingering, fingering->mutldata());
+                                            if (fingering->addToSkyline()) {
+                                                const Note* n = fingering->note();
+                                                const RectF r
+                                                    = fingering->ldata()->bbox().translated(
+                                                          fingering->pos() + n->pos() + n->chord()->pos() + segment->pos()
+                                                          + segment->measure()->pos());
+                                                s->staff(fingering->note()->chord()->vStaffIdx())->skyline().add(r, fingering);
+                                            }
                                         }
                                     }
                                 }
@@ -399,16 +408,18 @@ void PageLayout::collectPage(LayoutContext& ctx)
 
     // HACK: we relayout here cross-staff slurs because only now the information
     // about staff distances is fully available.
-    for (const System* system : page->systems()) {
-        long int stick = 0;
-        long int etick = 0;
-        if (system->firstMeasure()) {
-            stick = system->firstMeasure()->tick().ticks();
-        }
-        etick = system->endTick().ticks();
-        if (stick == 0 && etick == 0) {
+    for (System* system : page->systems()) {
+        if (!system->firstMeasure()) {
             continue;
         }
+
+        long int stick = system->firstMeasure()->tick().ticks();
+        long int etick = system->endTick().ticks();
+
+        IF_ASSERT_FAILED(stick < etick) {
+            continue;
+        }
+
         auto spanners = ctx.dom().spannerMap().findOverlapping(stick, etick);
         for (auto interval : spanners) {
             Spanner* sp = interval.value;
@@ -416,8 +427,16 @@ void PageLayout::collectPage(LayoutContext& ctx)
                 continue;
             }
             if (toSlur(sp)->isCrossStaff()) {
-                TLayout::layoutSlur(toSlur(sp), ctx);
+                SlurTieLayout::layoutSystem(toSlur(sp), system, ctx);
             }
+        }
+    }
+
+    for (const System* system : page->systems()) {
+        Fraction systemStartTick = system->measures().front()->tick();
+        Fraction systemEndTick = system->measures().back()->endTick();
+        if (systemEndTick > ctx.state().startTick() && systemStartTick <= ctx.state().endTick()) {
+            SystemLayout::centerElementsBetweenStaves(system);
         }
     }
 

@@ -221,6 +221,21 @@ struct MusicXMLInstrument {
      */
 };
 
+struct InferredPercInstr {
+    int pitch;
+    track_idx_t track;
+    String name;
+    Fraction tick;
+
+    InferredPercInstr(int pitch, track_idx_t track, String name, Fraction tick)
+        : pitch(pitch), track(track), name(name), tick(tick) {}
+
+    InferredPercInstr()
+        : pitch(-1), track(muse::nidx), name(u""), tick(Fraction(0, -1)) {}
+};
+
+typedef std::vector<InferredPercInstr> InferredPercList;
+
 /**
  A MusicXML drumset or set of instruments in a multi-instrument part.
  */
@@ -244,6 +259,7 @@ extern String accSymId2SmuflMxmlString(const SymId id);
 extern String accidentalType2MxmlString(const AccidentalType type);
 extern String accidentalType2SmuflMxmlString(const AccidentalType type);
 extern AccidentalType mxmlString2accidentalType(const String mxmlName, const String smufl);
+extern String mxmlAccidentalTextToChar(const String mxmlName);
 extern SymId mxmlString2accSymId(const String mxmlName, const String smufl = {});
 extern AccidentalType microtonalGuess(double val);
 extern bool isLaissezVibrer(const SymId id);

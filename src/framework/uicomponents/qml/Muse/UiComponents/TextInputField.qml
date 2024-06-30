@@ -48,6 +48,7 @@ FocusScope {
     property real textSidePadding: 12
     property real accessoriesPadding: 4
 
+    readonly property alias inputField: valueInput
     readonly property alias background: background
 
     readonly property alias mouseArea: clickableArea
@@ -63,7 +64,7 @@ FocusScope {
     signal textCleared()
     signal textEditingFinished(var newTextValue)
     signal accepted()
-    signal escapted()
+    signal escaped()
 
     function selectAll() {
         valueInput.selectAll()
@@ -170,12 +171,12 @@ FocusScope {
 
             text: root.currentText === undefined ? "" : root.currentText
 
-            TextInputFieldModel {
-                id: textInputFieldModel
+            TextInputModel {
+                id: textInputModel
             }
 
             Component.onCompleted: {
-                textInputFieldModel.init()
+                textInputModel.init()
             }
 
             Keys.onShortcutOverride: function(event) {
@@ -189,7 +190,7 @@ FocusScope {
                     return
                 }
 
-                if (textInputFieldModel.isShortcutAllowedOverride(event.key, event.modifiers)) {
+                if (textInputModel.isShortcutAllowedOverride(event.key, event.modifiers)) {
                     event.accepted = true
                 } else {
                     event.accepted = false
@@ -212,7 +213,7 @@ FocusScope {
                 }
 
                 if (isEscapeKey) {
-                    root.escapted()
+                    root.escaped()
                 }
             }
 

@@ -64,6 +64,8 @@
 
 #include "ui/iuiactionsregister.h"
 #include "ui/iinteractiveuriregister.h"
+#include "extensions/iextensionsexecpointsregister.h"
+#include "projectextensionpoints.h"
 
 using namespace mu::project;
 using namespace muse;
@@ -82,7 +84,7 @@ std::string ProjectModule::moduleName() const
 void ProjectModule::registerExports()
 {
     m_configuration = std::make_shared<ProjectConfiguration>();
-    m_actionsController = std::make_shared<ProjectActionsController>();
+    m_actionsController = std::make_shared<ProjectActionsController>(iocContext());
     m_projectAutoSaver = std::make_shared<ProjectAutoSaver>();
 
 #ifdef Q_OS_MAC
@@ -96,6 +98,7 @@ void ProjectModule::registerExports()
     ioc()->registerExport<IProjectConfiguration>(moduleName(), m_configuration);
     ioc()->registerExport<IProjectCreator>(moduleName(), new ProjectCreator());
     ioc()->registerExport<IProjectFilesController>(moduleName(), m_actionsController);
+    ioc()->registerExport<mi::IProjectProvider>(moduleName(), m_actionsController);
     ioc()->registerExport<IOpenSaveProjectScenario>(moduleName(), new OpenSaveProjectScenario());
     ioc()->registerExport<IExportProjectScenario>(moduleName(), new ExportProjectScenario());
     ioc()->registerExport<IRecentFilesController>(moduleName(), m_recentFilesController);
@@ -129,6 +132,18 @@ void ProjectModule::resolveImports()
         ir->registerQmlUri(Uri("musescore://project/upload/progress"), "MuseScore/Project/UploadProgressDialog.qml");
         ir->registerQmlUri(Uri("musescore://project/upload/success"), "MuseScore/Project/ProjectUploadedDialog.qml");
         ir->registerQmlUri(Uri("musescore://project/audiogenerationsettings"), "MuseScore/Project/AudioGenerationSettingsDialog.qml");
+    }
+
+    auto er = ioc()->resolve<muse::extensions::IExtensionsExecPointsRegister>(moduleName());
+    if (er) {
+        er->reg(moduleName(), { EXEC_ONPOST_PROJECT_CREATED,
+                                TranslatableString("project", "On post project created") });
+        er->reg(moduleName(), { EXEC_ONPOST_PROJECT_OPENED,
+                                TranslatableString("project", "On post project opened") });
+        er->reg(moduleName(), { EXEC_ONPRE_PROJECT_SAVE,
+                                TranslatableString("project", "On pre project save") });
+        er->reg(moduleName(), { EXEC_ONPOST_PROJECT_SAVED,
+                                TranslatableString("project", "On post project saved") });
     }
 }
 

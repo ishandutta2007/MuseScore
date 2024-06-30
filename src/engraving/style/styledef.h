@@ -202,6 +202,7 @@ enum class Sid {
     stemLengthSmall,
     shortStemStartLocation,
     shortestStem,
+    combineVoice,
     beginRepeatLeftMargin,
     minNoteDistance,
     barNoteDistance,
@@ -225,6 +226,10 @@ enum class Sid {
     accidentalNoteDistance,
     bracketedAccidentalPadding,
     alignAccidentalsLeft,
+    accidentalOrderFollowsNoteDisplacement,
+    alignAccidentalOctavesAcrossSubChords,
+    keepAccidentalSecondsTogether,
+    alignOffsetOctaveAccidentals,
     keysigAccidentalDistance,
     keysigNaturalDistance,
     beamWidth,
@@ -483,6 +488,8 @@ enum class Sid {
     alwaysShowBracketsWhenEmptyStavesAreHidden,
     alwaysShowSquareBracketsWhenEmptyStavesAreHidden,
     hideInstrumentNameIfOneInstrument,
+    firstSystemInstNameVisibility,
+    subsSystemInstNameVisibility,
     gateTime,
     tenutoGateTime,
     staccatoGateTime,
@@ -667,10 +674,15 @@ enum class Sid {
     barGraceDistance,
 
     minVerticalDistance,
+    skylineMinHorizontalClearance,
     ornamentStyle,
     spatium,
 
     autoplaceHairpinDynamicsDistance,
+
+    dynamicsHairpinVoiceBasedPlacement,
+    dynamicsHairpinsAutoCenterOnGrandStaff,
+    dynamicsHairpinsAboveForVocalStaves,
 
     dynamicsOverrideFont,
     dynamicsFont,

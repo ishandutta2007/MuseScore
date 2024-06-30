@@ -425,6 +425,8 @@ StyledListView {
                     togglePopup();
                 }
 
+                paletteHeader.closeContextMenu()
+
                 paletteTree.itemDragged = true;
                 DelegateModel.inPersistedItems = true;
                 DelegateModel.inItems = false;
@@ -641,6 +643,9 @@ StyledListView {
                             customPalette = paletteTree.paletteProvider.customElementsPaletteModel
                             customPaletteRootIndex = paletteTree.paletteProvider.customElementsPaletteIndex(control.modelIndex) // TODO: make a property binding? (but that works incorrectly)
                             customPaletteController = paletteTree.paletteProvider.customElementsPaletteController
+                        }
+                        if (!isOpened) {
+                            paletteTree.expandedPopupIndex = null
                         }
                     }
 

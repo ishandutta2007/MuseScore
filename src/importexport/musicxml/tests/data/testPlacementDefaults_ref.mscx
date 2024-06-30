@@ -194,8 +194,6 @@
           </Text>
         <Text>
           <style>composer</style>
-          <align>right,top</align>
-          <offset x="0" y="17.4247"/>
           <text>Henry Ives</text>
           </Text>
         </VBox>
@@ -210,19 +208,19 @@
             <sigN>4</sigN>
             <sigD>4</sigD>
             </TimeSig>
+          <Dynamic>
+            <subtype>pp</subtype>
+            <velocity>33</velocity>
+            <direction>up</direction>
+            </Dynamic>
           <Tempo>
             <tempo>0.583333</tempo>
             <text><font size="12"/><b>Grave</b></text>
             </Tempo>
-          <Dynamic>
-            <subtype>pp</subtype>
-            <velocity>33</velocity>
-            <placement>above</placement>
-            </Dynamic>
           <Spanner type="HairPin">
             <HairPin>
               <subtype>0</subtype>
-              <placement>above</placement>
+              <direction>up</direction>
               </HairPin>
             <next>
               <location>
@@ -408,6 +406,7 @@
           <Dynamic>
             <subtype>mf</subtype>
             <velocity>80</velocity>
+            <direction>down</direction>
             </Dynamic>
           <Chord>
             <durationType>quarter</durationType>

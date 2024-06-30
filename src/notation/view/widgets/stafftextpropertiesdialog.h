@@ -32,17 +32,14 @@ class StaffTextBase;
 }
 
 namespace mu::notation {
-class StaffTextPropertiesDialog : public QDialog, public Ui::StaffTextPropertiesDialog
+class StaffTextPropertiesDialog : public QDialog, public Ui::StaffTextPropertiesDialog, public muse::Injectable
 {
     Q_OBJECT
 
-    INJECT(context::IGlobalContext, globalContext)
+    muse::Inject<context::IGlobalContext> globalContext = { this };
 
 public:
     StaffTextPropertiesDialog(QWidget* parent = nullptr);
-#ifdef MU_QT5_COMPAT
-    StaffTextPropertiesDialog(const StaffTextPropertiesDialog& other);
-#endif
     ~StaffTextPropertiesDialog() override;
 
 private slots:

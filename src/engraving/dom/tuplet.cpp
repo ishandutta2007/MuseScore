@@ -143,6 +143,18 @@ void Tuplet::setVisible(bool f)
 }
 
 //---------------------------------------------------------
+//   setColor
+//---------------------------------------------------------
+
+void Tuplet::setColor(const Color& col)
+{
+    EngravingItem::setColor(col);
+    if (m_number) {
+        m_number->setColor(col);
+    }
+}
+
+//---------------------------------------------------------
 //   rtick
 //---------------------------------------------------------
 
@@ -502,10 +514,11 @@ staff_idx_t Tuplet::vStaffIdx() const
     while (cr->isTuplet()) {
         const Tuplet* t = toTuplet(cr);
         if (t->elements().empty()) {
-            break;
+            return muse::nidx;
         }
         cr = t->elements().front();
     }
+
     return cr->vStaffIdx();
 }
 

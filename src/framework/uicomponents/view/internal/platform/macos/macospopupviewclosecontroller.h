@@ -33,15 +33,11 @@ class MacOSPopupViewCloseController : public PopupViewCloseController, public QA
     Q_OBJECT
 
 public:
-    explicit MacOSPopupViewCloseController(QObject* parent = nullptr);
+    explicit MacOSPopupViewCloseController(const muse::modularity::ContextPtr& iocCtx, QObject* parent = nullptr);
     ~MacOSPopupViewCloseController() override = default;
 
 private:
-#ifdef MU_QT5_COMPAT
-    bool nativeEventFilter(const QByteArray& eventType, void* message, long* result) override;
-#else
     bool nativeEventFilter(const QByteArray& eventType, void* message, qintptr* result) override;
-#endif
 
     void doUpdateEventFilters() override;
 

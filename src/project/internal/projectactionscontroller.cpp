@@ -36,8 +36,9 @@
 #include "cloud/clouderrors.h"
 #include "engraving/infrastructure/mscio.h"
 #include "engraving/engravingerrors.h"
-#include "network/networkerrors.h"
+
 #include "projecterrors.h"
+#include "projectextensionpoints.h"
 
 #include "log.h"
 
@@ -271,7 +272,7 @@ RetVal<INotationProjectPtr> ProjectActionsController::loadProject(const muse::io
 {
     TRACEFUNC;
 
-    auto project = projectCreator()->newProject();
+    auto project = projectCreator()->newProject(iocContext());
     IF_ASSERT_FAILED(project) {
         return make_ret(Ret::Code::InternalError);
     }
@@ -380,6 +381,8 @@ muse::Ret ProjectActionsController::doOpenCloudProjectOffline(const muse::io::pa
 
 Ret ProjectActionsController::doFinishOpenProject()
 {
+    extensionsProvider()->performPointAsync(EXEC_ONPOST_PROJECT_OPENED);
+
     //! Show MuseSampler update if need
     async::Channel<Uri> opened = interactive()->opened();
     opened.onReceive(this, [this, opened](const Uri&) {
@@ -647,6 +650,8 @@ void ProjectActionsController::newProject()
     Ret ret = interactive()->open(NEW_SCORE_URI).ret;
 
     if (ret) {
+        extensionsProvider()->performPointAsync(EXEC_ONPOST_PROJECT_CREATED);
+
         ret = doFinishOpenProject();
     }
 
@@ -914,11 +919,23 @@ bool ProjectActionsController::saveProjectLocally(const muse::io::path_t& filePa
         return false;
     }
 
-    Ret ret = project->save(filePath, saveMode);
+    Ret ret = make_ok();
+    if (saveMode == SaveMode::Save) {
+        ret = extensionsProvider()->performPoint(EXEC_ONPRE_PROJECT_SAVE);
+    }
+
+    if (ret) {
+        ret = project->save(filePath, saveMode);
+    }
+
     if (!ret) {
         LOGE() << ret.toString();
         warnScoreCouldnotBeSaved(ret);
         return false;
+    }
+
+    if (saveMode == SaveMode::Save) {
+        ret = extensionsProvider()->performPoint(EXEC_ONPOST_PROJECT_SAVED);
     }
 
     recentFilesController()->prependRecentFile(makeRecentFile(project));

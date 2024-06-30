@@ -29,7 +29,7 @@
 using namespace muse::uicomponents;
 
 TopLevelDialog::TopLevelDialog(QWidget* parent)
-    : QDialog(parent)
+    : QDialog(parent), muse::Injectable(muse::iocCtxForQWidget(this))
 {
     setWindowFlag(Qt::WindowContextHelpButtonHint, false);
 
@@ -59,14 +59,6 @@ TopLevelDialog::TopLevelDialog(QWidget* parent)
     connect(qApp, &QApplication::applicationStateChanged, this, updateStayOnTopHint);
 #endif
 }
-
-#ifdef MU_QT5_COMPAT
-TopLevelDialog::TopLevelDialog(const TopLevelDialog& dialog)
-    : QDialog(dialog.parentWidget())
-{
-}
-
-#endif
 
 bool TopLevelDialog::event(QEvent* e)
 {

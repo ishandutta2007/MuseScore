@@ -33,15 +33,16 @@
 #include "../iengravingconfiguration.h"
 
 namespace mu::engraving {
-class EngravingConfiguration : public IEngravingConfiguration, public muse::async::Asyncable
+class EngravingConfiguration : public IEngravingConfiguration, public muse::Injectable, public muse::async::Asyncable
 {
-    INJECT(muse::IGlobalConfiguration, globalConfiguration)
-    INJECT(muse::ui::IUiConfiguration, uiConfiguration)
-    INJECT(muse::accessibility::IAccessibilityConfiguration, accessibilityConfiguration)
-    INJECT(iex::guitarpro::IGuitarProConfiguration, guitarProConfiguration)
+    muse::Inject<muse::IGlobalConfiguration> globalConfiguration = { this };
+    muse::Inject<muse::ui::IUiConfiguration> uiConfiguration = { this };
+    muse::Inject<muse::accessibility::IAccessibilityConfiguration> accessibilityConfiguration = { this };
+    muse::Inject<iex::guitarpro::IGuitarProConfiguration> guitarProConfiguration = { this };
 
 public:
-    EngravingConfiguration() = default;
+    EngravingConfiguration(const muse::modularity::ContextPtr& iocCtx)
+        : muse::Injectable(iocCtx) {}
 
     void init();
 
@@ -69,9 +70,7 @@ public:
     Color thumbnailBackgroundColor() const override;
     Color noteBackgroundColor() const override;
     Color fontPrimaryColor() const override;
-
-    Color timeTickAnchorColorLighter() const override;
-    Color timeTickAnchorColorDarker() const override;
+    Color voiceColor(voice_idx_t voiceIdx) const override;
 
     double guiScaling() const override;
 
@@ -84,6 +83,9 @@ public:
     bool scoreInversionEnabled() const override;
     void setScoreInversionEnabled(bool value) override;
 
+    bool dynamicsApplyToAllVoices() const override;
+    void setDynamicsApplyToAllVoices(bool v) override;
+
     muse::async::Notification scoreInversionChanged() const override;
 
     const DebuggingOptions& debuggingOptions() const override;
@@ -93,6 +95,8 @@ public:
     bool isAccessibleEnabled() const override;
 
     bool guitarProImportExperimental() const override;
+    bool useStretchedBends() const override;
+    bool shouldAddParenthesisOnStandardStaff() const override;
     bool negativeFretsAllowed() const override;
     bool crossNoteHeadAlwaysBlack() const override;
     bool enableExperimentalFretCircle() const override;

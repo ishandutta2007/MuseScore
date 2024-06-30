@@ -34,26 +34,22 @@
 #include "engraving/style/textstyle.h"
 
 namespace mu::notation {
-class EditStyle : public QDialog, private Ui::EditStyleBase
+class EditStyle : public QDialog, private Ui::EditStyleBase, public muse::Injectable
 {
     Q_OBJECT
-
-    INJECT(mu::context::IGlobalContext, globalContext)
-    INJECT(mu::notation::INotationConfiguration, configuration)
-    INJECT(muse::IInteractive, interactive)
-    INJECT(muse::ui::IUiEngine, uiEngine)
-    INJECT(mu::engraving::IEngravingFontsProvider, engravingFonts)
-    INJECT(muse::accessibility::IAccessibilityController, accessibilityController)
 
     Q_PROPERTY(QString currentPageCode READ currentPageCode WRITE setCurrentPageCode NOTIFY currentPageChanged)
     Q_PROPERTY(QString currentSubPageCode READ currentSubPageCode WRITE setCurrentSubPageCode NOTIFY currentSubPageChanged)
 
+    muse::Inject<mu::context::IGlobalContext> globalContext = { this };
+    muse::Inject<mu::notation::INotationConfiguration> configuration = { this };
+    muse::Inject<muse::IInteractive> interactive = { this };
+    muse::Inject<muse::ui::IUiEngine> uiEngine = { this };
+    muse::Inject<mu::engraving::IEngravingFontsProvider> engravingFonts = { this };
+    muse::Inject<muse::accessibility::IAccessibilityController> accessibilityController = { this };
+
 public:
     EditStyle(QWidget* = nullptr);
-
-#ifdef MU_QT5_COMPAT
-    EditStyle(const EditStyle&);
-#endif
 
     QString currentPageCode() const;
     QString currentSubPageCode() const;
@@ -112,6 +108,7 @@ private:
     PropertyValue styleValue(StyleId id) const;
     PropertyValue defaultStyleValue(StyleId id) const;
     bool hasDefaultStyleValue(StyleId id) const;
+    bool dynamicsAndHairpinPosPropertiesHaveDefaultStyleValue() const;
     void setStyleQVariantValue(StyleId id, const QVariant& value);
     void setStyleValue(StyleId id, const PropertyValue& value);
 
@@ -138,7 +135,6 @@ private slots:
     void on_comboFBFont_currentIndexChanged(int index);
     void on_buttonTogglePagelist_clicked();
     void on_resetStylesButton_clicked();
-    void on_resetTabStylesButton_clicked();
     void on_pageRowSelectionChanged();
     void editUserStyleName();
     void endEditUserStyleName();

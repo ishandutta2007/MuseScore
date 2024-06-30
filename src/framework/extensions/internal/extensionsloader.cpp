@@ -36,14 +36,14 @@ using namespace muse::extensions;
 const std::string MANIFEST("manifest.json");
 const std::string DEV_EXTENSIONS("extensions/dev/");
 
-ManifestList ExtensionsLoader::loadManifesList(const io::path_t& defPath, const io::path_t& extPath) const
+ManifestList ExtensionsLoader::loadManifestList(const io::path_t& defPath, const io::path_t& extPath) const
 {
     TRACEFUNC;
 
     LOGD() << "try load extensions, def: " << defPath << ", user: " << extPath;
 
-    ManifestList defaultManifests = manifesList(defPath);
-    ManifestList externalManifests = manifesList(extPath);
+    ManifestList defaultManifests = manifestList(defPath);
+    ManifestList externalManifests = manifestList(extPath);
 
     ManifestList retList;
     for (const Manifest& m : defaultManifests) {
@@ -73,7 +73,7 @@ ManifestList ExtensionsLoader::loadManifesList(const io::path_t& defPath, const 
     return retList;
 }
 
-ManifestList ExtensionsLoader::manifesList(const io::path_t& rootPath) const
+ManifestList ExtensionsLoader::manifestList(const io::path_t& rootPath) const
 {
     ManifestList manifests;
     io::paths_t paths = manifestPaths(rootPath);
@@ -104,6 +104,11 @@ Manifest ExtensionsLoader::parseManifest(const io::path_t& path) const
         return Manifest();
     }
 
+    return parseManifest(data);
+}
+
+Manifest ExtensionsLoader::parseManifest(const ByteArray& data) const
+{
     std::string jsonErr;
     JsonObject obj = JsonDocument::fromJson(data, &jsonErr).rootObject();
     if (!jsonErr.empty()) {
@@ -120,6 +125,7 @@ Manifest ExtensionsLoader::parseManifest(const io::path_t& path) const
     m.thumbnail = obj.value("thumbnail").toStdString();
     m.apiversion = obj.value("apiversion", DEFAULT_API_VERSION).toInt();
 
+    String uiCtx = obj.value("ui_context", String(DEFAULT_UI_CONTEXT)).toString();
     if (obj.contains("actions")) {
         JsonArray arr = obj.value("actions").toArray();
         for (size_t i = 0; i < arr.size(); ++i) {
@@ -129,6 +135,7 @@ Manifest ExtensionsLoader::parseManifest(const io::path_t& path) const
             a.type = typeFromString(ao.value("type").toStdString());
             a.modal = ao.value("modal", DEFAULT_MODAL).toBool();
             a.title = ao.value("title").toString();
+            a.uiCtx = ao.value("ui_context", uiCtx).toString();
             a.main = ao.value("main").toStdString();
             a.apiversion = m.apiversion;
             m.actions.push_back(std::move(a));
@@ -139,6 +146,7 @@ Manifest ExtensionsLoader::parseManifest(const io::path_t& path) const
         a.type = m.type;
         a.modal = obj.value("modal", DEFAULT_MODAL).toBool();
         a.title = m.title;
+        a.uiCtx = uiCtx;
         a.main = obj.value("main").toStdString();
         a.apiversion = m.apiversion;
         m.actions.push_back(std::move(a));

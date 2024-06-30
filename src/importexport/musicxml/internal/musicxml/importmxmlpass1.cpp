@@ -569,6 +569,8 @@ static bool overrideTextStyleForComposer(const String& creditString)
 //   addText2
 //---------------------------------------------------------
 
+static void scaleTitle(Score* score, Text* text);
+
 /**
  Add text \a strTxt to VBox \a vbx using Tid \a stl.
  Also sets Align and Yoff.
@@ -576,7 +578,7 @@ static bool overrideTextStyleForComposer(const String& creditString)
 
 static void addText2(VBox* vbx, Score* score, const String& strTxt, const TextStyleType stl, const Align align, const double yoffs)
 {
-    if (overrideTextStyleForComposer(strTxt)) {
+    if (stl != TextStyleType::COMPOSER && overrideTextStyleForComposer(strTxt)) {
         // HACK: in some Dolet 8 files the composer is written as a subtitle, which leads to stupid formatting.
         // This overrides the formatting and introduces proper composer text
         Text* text = Factory::createText(vbx, TextStyleType::COMPOSER);
@@ -627,7 +629,7 @@ static void findYMinYMaxInWords(const std::vector<const CreditWords*>& words, in
 //   alignForCreditWords
 //---------------------------------------------------------
 
-static Align alignForCreditWords(const CreditWords* const w, const int pageWidth)
+static Align alignForCreditWords(const CreditWords* const w, const int pageWidth, const TextStyleType tid)
 {
     Align align = AlignH::LEFT;
     if (w->defaultX > (pageWidth / 3)) {
@@ -636,6 +638,9 @@ static Align alignForCreditWords(const CreditWords* const w, const int pageWidth
         } else {
             align = AlignH::RIGHT;
         }
+    }
+    if (tid == TextStyleType::COMPOSER) {
+        align.vertical = AlignV::BOTTOM;
     }
     return align;
 }
@@ -823,6 +828,11 @@ bool isLikelyCreditText(const String& text, const bool caseInsensitive = true)
            || text.trimmed().contains(std::wregex(L"^(Traditional|Trad\\.)", caseOption));
 }
 
+static bool isLikelyRightsText(const String& text)
+{
+    return text.contains(u"all rights reserved", CaseSensitivity::CaseInsensitive) || text.contains(u"\u00A9");
+}
+
 //---------------------------------------------------------
 //   inferSubTitleFromTitle
 //---------------------------------------------------------
@@ -895,13 +905,19 @@ static VBox* addCreditWords(Score* score, const CreditWordsList& crWords,
 
     for (const CreditWords* w : words) {
         if (mustAddWordToVbox(w->type)) {
-            const Align align = alignForCreditWords(w, pageSize.width());
             const TextStyleType tid = (pageNr == 1 && top) ? tidForCreditWords(w, words, pageSize.width()) : TextStyleType::DEFAULT;
-            double yoffs = (maxy - w->defaultY) * score->style().spatium() / 10;
+            const Align align = alignForCreditWords(w, pageSize.width(), tid);
+            double yoffs = tid == TextStyleType::COMPOSER ? 0.0 : (maxy - w->defaultY) * score->style().spatium() / 10;
             if (!vbox) {
                 vbox = MusicXMLParserPass1::createAndAddVBoxForCreditWords(score, miny, maxy);
             }
             addText2(vbox, score, w->words, tid, align, yoffs);
+        } else if (w->type == u"rights" && score->metaTag(u"copyright").empty()) {
+            // Add rights to footer, not a vbox
+            static const std::regex tagRe("(<.*?>)");
+            String rights = w->words;
+            rights.remove(tagRe);
+            score->setMetaTag(u"copyright", rights);
         }
     }
 
@@ -1525,6 +1541,7 @@ void MusicXMLParserPass1::credit(CreditWordsList& credits)
     String valign;
     StringList crtypes;
     String crwords;
+    bool hasRights = false;
     while (m_e.readNextStartElement()) {
         if (m_e.name() == "credit-words") {
             // IMPORT_LAYOUT
@@ -1541,12 +1558,17 @@ void MusicXMLParserPass1::credit(CreditWordsList& credits)
         } else if (m_e.name() == "credit-type") {
             // multiple credit-type elements may be present, supported by
             // e.g. Finale v26.3 for Mac.
-            crtypes.push_back(m_e.readText());
+            String type = m_e.readText();
+            crtypes.push_back(type);
+            hasRights = hasRights || type == u"rights";
         } else {
             skipLogCurrElem();
         }
     }
-    if (crwords != "") {
+    if (!hasRights && isLikelyRightsText(crwords)) {
+        crtypes.push_back(u"rights");
+    }
+    if (!crwords.empty()) {
         // as the meaning of multiple credit-types is undocumented,
         // use credit-type only if exactly one was found
         String crtype = (crtypes.size() == 1) ? crtypes.at(0) : String();
@@ -1999,12 +2021,13 @@ void MusicXMLParserPass1::partList(MusicXmlPartGroupList& partGroupList)
 
     int scoreParts = 0;   // number of score-parts read sofar
     MusicXmlPartGroupMap partGroups;
+    String curPartGroupName;
 
     while (m_e.readNextStartElement()) {
         if (m_e.name() == "part-group") {
-            partGroup(scoreParts, partGroupList, partGroups);
+            partGroup(scoreParts, partGroupList, partGroups, curPartGroupName);
         } else if (m_e.name() == "score-part") {
-            scorePart();
+            scorePart(curPartGroupName);
             scoreParts++;
         } else {
             skipLogCurrElem();
@@ -2115,7 +2138,7 @@ static void partGroupStop(MusicXmlPartGroupMap& pgs, int n, int p,
 
 void MusicXMLParserPass1::partGroup(const int scoreParts,
                                     MusicXmlPartGroupList& partGroupList,
-                                    MusicXmlPartGroupMap& partGroups)
+                                    MusicXmlPartGroupMap& partGroups, String& curPartGroupName)
 {
     m_logger->logDebugTrace(u"MusicXMLParserPass1::partGroup", &m_e);
     bool barlineSpan = true;
@@ -2128,7 +2151,7 @@ void MusicXMLParserPass1::partGroup(const int scoreParts,
 
     while (m_e.readNextStartElement()) {
         if (m_e.name() == "group-name") {
-            m_e.skipCurrentElement();        // skip but don't log
+            curPartGroupName = m_e.readText();
         } else if (m_e.name() == "group-abbreviation") {
             symbol = m_e.readText();
         } else if (m_e.name() == "group-symbol") {
@@ -2162,7 +2185,7 @@ void MusicXMLParserPass1::partGroup(const int scoreParts,
  which is invalid MusicXML but is (sometimes ?) generated by NWC2MusicXML.
  */
 
-void MusicXMLParserPass1::scorePart()
+void MusicXMLParserPass1::scorePart(const String& curPartGroupName)
 {
     m_logger->logDebugTrace(u"MusicXMLParserPass1::scorePart", &m_e);
     String id = m_e.attribute("id").trimmed();
@@ -2187,8 +2210,19 @@ void MusicXMLParserPass1::scorePart()
             String name = m_e.readText();
             m_parts[id].setName(name);
         } else if (m_e.name() == "part-name-display") {
-            // TODO
-            m_e.skipCurrentElement();       // skip but don't log
+            String name;
+            while (m_e.readNextStartElement()) {
+                if (m_e.name() == "display-text") {
+                    name += m_e.readText();
+                } else if (m_e.name() == "accidental-text") {
+                    name += mxmlAccidentalTextToChar(m_e.readText());
+                } else {
+                    skipLogCurrElem();
+                }
+            }
+            if (!name.empty()) {
+                m_parts[id].setName(name);
+            }
         } else if (m_e.name() == "part-abbreviation") {
             // EngravingItem part-name contains the displayed (abbreviated) part name
             // It is displayed by default, but can be suppressed (print-object=”no”)
@@ -2198,9 +2232,27 @@ void MusicXMLParserPass1::scorePart()
             String name = m_e.readText();
             m_parts[id].setAbbr(name);
         } else if (m_e.name() == "part-abbreviation-display") {
-            m_e.skipCurrentElement();        // skip but don't log
+            String name;
+            while (m_e.readNextStartElement()) {
+                if (m_e.name() == "display-text") {
+                    name += m_e.readText();
+                } else if (m_e.name() == "accidental-text") {
+                    name += mxmlAccidentalTextToChar(m_e.readText());
+                } else {
+                    skipLogCurrElem();
+                }
+            }
+            if (!name.empty()) {
+                m_parts[id].setAbbr(name);
+            }
+        } else if (m_e.name() == "group") {
+            // TODO
+            m_e.skipCurrentElement();          // skip but don't log
         } else if (m_e.name() == "score-instrument") {
-            scoreInstrument(id);
+            scoreInstrument(id, curPartGroupName);
+        } else if (m_e.name() == "player") {
+            // unsupported
+            m_e.skipCurrentElement();          // skip but don't log
         } else if (m_e.name() == "midi-device") {
             if (!m_e.hasAttribute("port")) {
                 m_e.readText();         // empty string
@@ -2235,7 +2287,7 @@ void MusicXMLParserPass1::scorePart()
  Parse the /score-partwise/part-list/score-part/score-instrument node.
  */
 
-void MusicXMLParserPass1::scoreInstrument(const String& partId)
+void MusicXMLParserPass1::scoreInstrument(const String& partId, const String& curPartGroupName)
 {
     m_logger->logDebugTrace(u"MusicXMLParserPass1::scoreInstrument", &m_e);
     String instrId = m_e.attribute("id");
@@ -2252,6 +2304,14 @@ void MusicXMLParserPass1::scoreInstrument(const String& partId)
                    muPrintable(instrName)
                    );
              */
+
+            // Finale exports all instrument names as 'Grand Piano' - use part name
+            if (m_exporterString.contains(u"finale")) {
+                instrName = m_parts[partId].getName();
+                if (instrName.size() <= 1) {
+                    instrName = curPartGroupName;
+                }
+            }
             m_instruments[partId].insert({ instrId, MusicXMLInstrument(instrName) });
             // EngravingItem instrument-name is typically not displayed in the score,
             // but used only internally
@@ -2966,7 +3026,7 @@ void MusicXMLParserPass1::directionType(const Fraction cTime,
         if (m_e.name() == "octave-shift") {
             String number = m_e.attribute("number");
             int n = 0;
-            if (number != "") {
+            if (!number.empty()) {
                 n = number.toInt();
                 if (n <= 0) {
                     m_logger->logError(String(u"invalid number %1").arg(number), &m_e);
@@ -3555,7 +3615,7 @@ void MusicXMLParserPass1::note(const String& partId,
     // keep in this order as checkTiming() might change dura
     String errorStr = mnd.checkTiming(type, bRest, grace);
     dura = mnd.duration();
-    if (errorStr != "") {
+    if (!errorStr.empty()) {
         m_logger->logError(errorStr, &m_e);
     }
 

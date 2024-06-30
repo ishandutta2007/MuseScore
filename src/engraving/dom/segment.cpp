@@ -515,6 +515,42 @@ Segment* Segment::prev1MM(SegmentType types) const
     return 0;
 }
 
+Segment* Segment::nextActive() const
+{
+    Segment* ns = next();
+    while (ns && !ns->isActive()) {
+        ns = ns->next();
+    }
+    return ns;
+}
+
+Segment* Segment::nextEnabled() const
+{
+    Segment* ns = next();
+    while (ns && !ns->enabled()) {
+        ns = ns->next();
+    }
+    return ns;
+}
+
+Segment* Segment::prevActive() const
+{
+    Segment* ps = prev();
+    while (ps && !ps->isActive()) {
+        ps = ps->prev();
+    }
+    return ps;
+}
+
+Segment* Segment::prevEnabled() const
+{
+    Segment* ps = prev();
+    while (ps && !ps->enabled()) {
+        ps = ps->prev();
+    }
+    return ps;
+}
+
 //---------------------------------------------------------
 //   nextCR
 //    get next ChordRest Segment
@@ -1267,6 +1303,10 @@ bool Segment::hasElements(staff_idx_t staffIdx) const
 
 bool Segment::allElementsInvisible() const
 {
+    if (isType(SegmentType::TimeTick)) {
+        return true;
+    }
+
     if (isType(SegmentType::BarLineType | SegmentType::ChordRest)) {
         return false;
     }
@@ -1444,7 +1484,7 @@ RectF Segment::contentRect() const
 //   segment, or a barline if it spanns in the staff
 //---------------------------------------------------------
 
-EngravingItem* Segment::firstElement(staff_idx_t staff)
+EngravingItem* Segment::firstElementForNavigation(staff_idx_t staff)
 {
     if (isChordRestType()) {
         track_idx_t strack = staff * VOICES;
@@ -1468,7 +1508,7 @@ EngravingItem* Segment::firstElement(staff_idx_t staff)
 //   segment, or a barline if it spanns in the staff
 //---------------------------------------------------------
 
-EngravingItem* Segment::lastElement(staff_idx_t staff)
+EngravingItem* Segment::lastElementForNavigation(staff_idx_t staff)
 {
     if (segmentType() == SegmentType::ChordRest) {
         for (int voice = static_cast<int>(staff * VOICES + (VOICES - 1)); voice / static_cast<int>(VOICES) == static_cast<int>(staff);
@@ -1503,7 +1543,7 @@ EngravingItem* Segment::getElement(staff_idx_t staff)
 {
     segmentType();
     if (segmentType() == SegmentType::ChordRest) {
-        return firstElement(staff);
+        return firstElementForNavigation(staff);
     } else if (segmentType() & (SegmentType::EndBarLine | SegmentType::BarLine | SegmentType::StartRepeatBarLine)) {
         for (int i = static_cast<int>(staff); i >= 0; i--) {
             if (!element(i * VOICES)) {
@@ -1617,7 +1657,7 @@ EngravingItem* Segment::firstInNextSegments(staff_idx_t activeStaff)
             break;
         }
 
-        re = seg->firstElement(activeStaff);
+        re = seg->firstElementForNavigation(activeStaff);
     }
 
     if (re) {
@@ -2251,6 +2291,18 @@ EngravingItem* Segment::prevElement(staff_idx_t activeStaff)
     }
 }
 
+EngravingItem* Segment::firstElement(staff_idx_t staffIdx) const
+{
+    track_idx_t startTrack = staffIdx * VOICES;
+    track_idx_t endTrack = startTrack + VOICES;
+    for (track_idx_t track =  startTrack; track < endTrack; ++track) {
+        if (EngravingItem* item = m_elist[track]) {
+            return item;
+        }
+    }
+    return nullptr;
+}
+
 //--------------------------------------------------------
 //   lastInPrevSegments
 //   Searches for the previous segment that has elements on
@@ -2289,7 +2341,7 @@ EngravingItem* Segment::lastInPrevSegments(staff_idx_t activeStaff)
             //if (seg->segmentType() == SegmentType::EndBarLine)
             //      score()->inputState().setTrack((activeStaff - 1) * VOICES ); //correction
 
-            if ((re = seg->lastElement(activeStaff - 1)) != 0) {
+            if ((re = seg->lastElementForNavigation(activeStaff - 1)) != 0) {
                 return re;
             }
 
@@ -2406,7 +2458,7 @@ void Segment::createShape(staff_idx_t staffIdx)
         if (bl) {
             rendering::dev::LayoutContext lctx(score());
             RectF r = rendering::dev::TLayout::layoutRect(bl, lctx);
-            s.add(r.translated(bl->pos()), bl);
+            s.add(r.translated(bl->pos() + bl->staffOffset()), bl);
         }
         s.addHorizontalSpacing(bl, 0, 0);
         return;
@@ -2433,14 +2485,14 @@ void Segment::createShape(staff_idx_t staffIdx)
                 continue;
             }
             if (e->addToSkyline()) {
-                s.add(e->shape().translate(e->isClef() ? e->ldata()->pos() : e->pos()));
+                s.add(e->shape().translate((e->isClef() ? e->ldata()->pos() : e->pos()) + e->staffOffset()));
             }
             // Non-standard trills display a cue note that we must add to shape here
             if (e->isChord()) {
                 Ornament* orn = toChord(e)->findOrnament();
                 Chord* cueNoteChord = orn ? orn->cueNoteChord() : nullptr;
                 if (cueNoteChord && cueNoteChord->upNote()->visible()) {
-                    s.add(cueNoteChord->shape().translate(cueNoteChord->pos()));
+                    s.add(cueNoteChord->shape().translate(cueNoteChord->pos() + cueNoteChord->staffOffset()));
                 }
             }
         }
@@ -2483,7 +2535,7 @@ void Segment::createShape(staff_idx_t staffIdx)
                    && !e->isStringTunings()) {
             // annotations added here are candidates for collision detection
             // lyrics, ...
-            s.add(e->shape().translate(e->pos()));
+            s.add(e->shape().translate(e->pos() + e->staffOffset()));
         }
     }
 }
@@ -2500,7 +2552,7 @@ void Segment::addPreAppendedToShape()
             toGraceNotesGroup(item)->addToShape();
         } else {
             Shape& shape = m_shapes[item->vStaffIdx()];
-            shape.add(item->shape().translate(item->pos()));
+            shape.add(item->shape().translate(item->pos() + item->staffOffset()));
         }
     }
 }
@@ -2576,18 +2628,18 @@ double Segment::elementsTopOffsetFromSkyline(staff_idx_t staffIndex) const
 
     SkylineLine north = staffSystem->skyline().north();
     int topOffset = INT_MAX;
-    for (SkylineSegment segment: north) {
+    for (const ShapeElement& element : north.elements()) {
         Segment* seg = prev1enabled();
         if (!seg) {
             continue;
         }
-        bool ok = seg->pagePos().x() <= segment.x && segment.x <= pagePos().x();
+        bool ok = seg->pagePos().x() <= element.left() && element.left() <= pagePos().x();
         if (!ok) {
             continue;
         }
 
-        if (segment.y < topOffset) {
-            topOffset = segment.y;
+        if (element.top() < topOffset) {
+            topOffset = element.top();
         }
     }
 
@@ -2609,18 +2661,18 @@ double Segment::elementsBottomOffsetFromSkyline(staff_idx_t staffIndex) const
 
     SkylineLine south = staffSystem->skyline().south();
     int bottomOffset = INT_MIN;
-    for (SkylineSegment segment: south) {
+    for (const ShapeElement& element : south.elements()) {
         Segment* seg = prev1enabled();
         if (!seg) {
             continue;
         }
-        bool ok = seg->pagePos().x() <= segment.x && segment.x <= pagePos().x();
+        bool ok = seg->pagePos().x() <= element.left() && element.left() <= pagePos().x();
         if (!ok) {
             continue;
         }
 
-        if (segment.y > bottomOffset) {
-            bottomOffset = segment.y;
+        if (element.bottom() > bottomOffset) {
+            bottomOffset = element.bottom();
         }
     }
 

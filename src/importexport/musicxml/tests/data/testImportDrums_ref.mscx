@@ -214,6 +214,13 @@
           <name>Ride Cymbal 2</name>
           <stem>1</stem>
           </Drum>
+        <Drum pitch="81">
+          <head>normal</head>
+          <line>-2</line>
+          <voice>0</voice>
+          <name>drum</name>
+          <stem>1</stem>
+          </Drum>
         <clef>PERC</clef>
         <singleNoteDynamics>0</singleNoteDynamics>
         <Articulation>
@@ -288,13 +295,9 @@
             <followText>1</followText>
             <text><sym>metNoteQuarterUp</sym> = 120</text>
             </Tempo>
-          <Tempo>
-            <tempo>2</tempo>
-            <followText>1</followText>
-            <text><sym>metNoteQuarterUp</sym> = 120</text>
-            </Tempo>
           <Chord>
             <durationType>quarter</durationType>
+            <StemDirection>down</StemDirection>
             <Note>
               <pitch>36</pitch>
               <tpc>14</tpc>
@@ -302,6 +305,7 @@
             </Chord>
           <Chord>
             <durationType>quarter</durationType>
+            <StemDirection>up</StemDirection>
             <Note>
               <pitch>38</pitch>
               <tpc>16</tpc>
@@ -309,6 +313,7 @@
             </Chord>
           <Chord>
             <durationType>quarter</durationType>
+            <StemDirection>up</StemDirection>
             <Note>
               <pitch>51</pitch>
               <tpc>11</tpc>
@@ -317,6 +322,7 @@
             </Chord>
           <Chord>
             <durationType>quarter</durationType>
+            <StemDirection>up</StemDirection>
             <Note>
               <pitch>42</pitch>
               <tpc>20</tpc>
@@ -329,6 +335,7 @@
         <voice>
           <Chord>
             <durationType>quarter</durationType>
+            <StemDirection>up</StemDirection>
             <Note>
               <pitch>47</pitch>
               <tpc>19</tpc>
@@ -336,6 +343,7 @@
             </Chord>
           <Chord>
             <durationType>quarter</durationType>
+            <StemDirection>up</StemDirection>
             <Note>
               <pitch>45</pitch>
               <tpc>17</tpc>
@@ -343,6 +351,7 @@
             </Chord>
           <Chord>
             <durationType>quarter</durationType>
+            <StemDirection>up</StemDirection>
             <Note>
               <pitch>41</pitch>
               <tpc>13</tpc>
@@ -350,10 +359,10 @@
             </Chord>
           <Chord>
             <durationType>quarter</durationType>
+            <StemDirection>up</StemDirection>
             <Note>
-              <pitch>49</pitch>
-              <tpc>21</tpc>
-              <head>cross</head>
+              <pitch>81</pitch>
+              <tpc>17</tpc>
               </Note>
             </Chord>
           </voice>

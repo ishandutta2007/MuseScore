@@ -26,6 +26,7 @@
 #include "utils/scorerw.h"
 
 #include "engraving/dom/part.h"
+#include "engraving/dom/staff.h"
 #include "engraving/dom/repeatlist.h"
 
 #include "playback/playbackcontext.h"
@@ -55,6 +56,14 @@ protected:
     void TearDown() override
     {
         MScore::useRead302InTestMode = true;
+    }
+
+    static void addParamToStaff(const PlaybackParam& param, staff_idx_t staffIdx, timestamp_t timestamp, PlaybackParamLayers& dest)
+    {
+        for (voice_idx_t voiceIdx = 0; voiceIdx < VOICES; ++voiceIdx) {
+            layer_idx_t layerIdx = static_cast<layer_idx_t>(staff2track(staffIdx, voiceIdx));
+            dest[layerIdx][timestamp].push_back(param);
+        }
     }
 };
 
@@ -91,7 +100,7 @@ TEST_F(Engraving_PlaybackContextTests, Hairpins_Repeats)
         for (const auto& pair : f_to_fff_curve) {
             mpe::timestamp_t time = timestampFromTicks(score, f_to_fff_startTick + pair.first + tickPositionOffset);
             ASSERT_FALSE(muse::contains(expectedDynamics, time));
-            expectedDynamics.emplace(time, static_cast<int>(f) + pair.second);
+            expectedDynamics.emplace(time, f + static_cast<dynamic_level_t>(pair.second));
         }
     }
 
@@ -105,42 +114,41 @@ TEST_F(Engraving_PlaybackContextTests, Hairpins_Repeats)
     for (const auto& pair : ppp_to_p_curve) {
         mpe::timestamp_t time = timestampFromTicks(score, ppp_to_p_startTick + pair.first);
         ASSERT_FALSE(muse::contains(expectedDynamics, time));
-        expectedDynamics.emplace(time, static_cast<int>(ppp) + pair.second);
+        expectedDynamics.emplace(time, ppp + static_cast<dynamic_level_t>(pair.second));
     }
 
     ASSERT_FALSE(expectedDynamics.empty());
 
-    // [WHEN] Get the actual dynamics map
-    DynamicLevelMap actualDynamics = ctx.dynamicLevelMap(score);
+    // [WHEN] Get the actual dynamics
+    DynamicLevelLayers layers = ctx.dynamicLevelLayers(score);
 
-    // [THEN] The dynamics map matches the expectation
-    EXPECT_EQ(actualDynamics, expectedDynamics);
+    // [THEN] The dynamics match the expectation
+    EXPECT_FALSE(layers.empty());
+
+    for (const auto& layer : layers) {
+        const DynamicLevelMap& actualDynamics = layer.second;
+        EXPECT_EQ(actualDynamics, expectedDynamics);
+    }
 
     delete score;
 }
 
 TEST_F(Engraving_PlaybackContextTests, Dynamics_MeasureRepeats)
 {
-    // [GIVEN] Score with 5 measures. There is a measure repeat on the last 2 measures
+    // [GIVEN] Score with 5 measures and 2 instruments. There is a measure repeat on the last 2 measures of the 1st instrument
     // (so the previous 2 measures will be repeated)
     Score* score = ScoreRW::readScore(PLAYBACK_CONTEXT_TEST_FILES_DIR + "dynamics/dynamics_and_measure_repeats.mscx");
 
     const std::vector<Part*>& parts = score->parts();
-    ASSERT_FALSE(parts.empty());
+    ASSERT_EQ(parts.size(), 2);
 
     // [GIVEN] Context for parsing dynamics
     PlaybackContext ctx;
 
-    // [WHEN] Parse dynamics
-    ctx.update(parts.front()->id(), score);
+    // [WHEN] Parse dynamics for the 1st instrument (with measure repeats)
+    ctx.update(parts.at(0)->id(), score);
 
-    // [WHEN] Get the actual dynamics map
-    DynamicLevelMap actualDynamics = ctx.dynamicLevelMap(score);
-
-    // [THEN] The dynamics map matches the expectation
     DynamicLevelMap expectedDynamics {
-        { timestampFromTicks(score, 0), dynamicLevelFromType(mpe::DynamicType::Natural) },
-
         // 2nd measure
         { timestampFromTicks(score, 1920), dynamicLevelFromType(mpe::DynamicType::ppp) }, // 1st quarter note
         { timestampFromTicks(score, 3360), dynamicLevelFromType(mpe::DynamicType::p) }, // 4th quarter note
@@ -158,7 +166,103 @@ TEST_F(Engraving_PlaybackContextTests, Dynamics_MeasureRepeats)
         { timestampFromTicks(score, 9120), dynamicLevelFromType(mpe::DynamicType::fff) },
     };
 
-    EXPECT_EQ(actualDynamics, expectedDynamics);
+    // [WHEN] Get the actual dynamics
+    DynamicLevelLayers layers = ctx.dynamicLevelLayers(score);
+
+    // [THEN] The dynamics match the expectation
+    EXPECT_FALSE(layers.empty());
+    for (const auto& layer : layers) {
+        const DynamicLevelMap& actualDynamics = layer.second;
+        EXPECT_EQ(actualDynamics, expectedDynamics);
+    }
+
+    // [WHEN] Parse dynamics for the 2nd instrument (without measure repeats)
+    ctx.clear();
+    ctx.update(parts.at(1)->id(), score);
+
+    // [WHEN] Get the actual dynamics
+    layers = ctx.dynamicLevelLayers(score);
+
+    // [THEN] Measure repeat on the 1st instrument doesn't affect other instruments
+    expectedDynamics = {
+        // 1st measure
+        { timestampFromTicks(score, 0), dynamicLevelFromType(mpe::DynamicType::f) },
+
+        // 3rd measure
+        { timestampFromTicks(score, 3840), dynamicLevelFromType(mpe::DynamicType::ff) },
+    };
+
+    // [THEN] The dynamics match the expectation
+    EXPECT_FALSE(layers.empty());
+    for (const auto& layer : layers) {
+        const DynamicLevelMap& actualDynamics = layer.second;
+        EXPECT_EQ(actualDynamics, expectedDynamics);
+    }
+}
+
+TEST_F(Engraving_PlaybackContextTests, Dynamics_OnDifferentVoices)
+{
+    // [GIVEN]
+    Score* score = ScoreRW::readScore(PLAYBACK_CONTEXT_TEST_FILES_DIR + "dynamics/dynamics_on_voices.mscx");
+
+    const std::vector<Part*>& parts = score->parts();
+    ASSERT_FALSE(parts.empty());
+
+    // [GIVEN] Context for parsing dynamics
+    PlaybackContext ctx;
+
+    // [WHEN] Parse dynamics
+    const Part* part = parts.front();
+    ctx.update(part->id(), score);
+
+    // [WHEN] Get the actual dynamics
+    DynamicLevelLayers actualLayers = ctx.dynamicLevelLayers(score);
+
+    // [THEN] The dynamics match the expectation
+    DynamicLevelLayers expectedLayers;
+
+    auto addDynToAllStavesAndVoices = [score, part, &expectedLayers](mpe::DynamicType dyn, int tick) {
+        for (track_idx_t trackIdx = part->startTrack(); trackIdx < part->endTrack(); ++trackIdx) {
+            expectedLayers[static_cast<layer_idx_t>(trackIdx)][timestampFromTicks(score, tick)] = dynamicLevelFromType(dyn);
+        }
+    };
+
+    auto addDynToVoice = [score, part, &expectedLayers](mpe::DynamicType dyn, voice_idx_t voiceIdx, int tick) {
+        staff_idx_t firstStaffIdx = part->staves().front()->idx();
+        staff_idx_t lastStaffIdx = firstStaffIdx + part->nstaves();
+
+        for (staff_idx_t staffIdx = firstStaffIdx; staffIdx < lastStaffIdx; ++staffIdx) {
+            layer_idx_t layerIdx = static_cast<layer_idx_t>(staff2track(staffIdx, voiceIdx));
+            expectedLayers[layerIdx][timestampFromTicks(score, tick)] = dynamicLevelFromType(dyn);
+        }
+    };
+
+    auto addDynToStaffAndVoice = [score, &expectedLayers](mpe::DynamicType dyn, staff_idx_t staffIdx, voice_idx_t voiceIdx, int tick) {
+        layer_idx_t layerIdx = static_cast<layer_idx_t>(staff2track(staffIdx, voiceIdx));
+        expectedLayers[layerIdx][timestampFromTicks(score, tick)] = dynamicLevelFromType(dyn);
+    };
+
+    // 1st measure
+    addDynToAllStavesAndVoices(mpe::DynamicType::ppp, 0);
+
+    // 2nd measure
+    addDynToVoice(mpe::DynamicType::pp, 1, 1920); // 2nd voice (all staves)
+
+    // 3rd measure
+    addDynToVoice(mpe::DynamicType::mf, 0, 3840); // 1st voice (all staves)
+    addDynToVoice(mpe::DynamicType::p, 1, 3840); // 2nd voice (all staves)
+
+    // 4th measure
+    for (voice_idx_t voiceIdx = 0; voiceIdx < VOICES; ++voiceIdx) {
+        addDynToStaffAndVoice(mpe::DynamicType::f, 0, voiceIdx, 5760); // 1st staff only
+    }
+
+    // 5th measure
+    addDynToAllStavesAndVoices(mpe::DynamicType::ff, 7680);
+
+    EXPECT_EQ(actualLayers, expectedLayers);
+
+    delete score;
 }
 
 TEST_F(Engraving_PlaybackContextTests, PlayTechniques)
@@ -287,48 +391,50 @@ TEST_F(Engraving_PlaybackContextTests, SoundFlags)
     ctx.update(part->id(), score);
 
     // [WHEN] Get the actual params
-    PlaybackParamMap params = ctx.playbackParamMap(score);
+    PlaybackParamLayers actualParams = ctx.playbackParamLayers(score);
 
     // [THEN] Expected params
-    staff_layer_idx_t startIdx = 0;
-    staff_layer_idx_t endIdx = static_cast<staff_layer_idx_t>(part->nstaves());
+    PlaybackParam sulTasto(PlaybackParam::PlayingTechnique, u"Sul Tasto");
+    PlaybackParam bartok(PlaybackParam::PlayingTechnique, u"bartok");
+    PlaybackParam pizz(PlaybackParam::PlayingTechnique, u"pizzicato");
+    PlaybackParam espressivo(PlaybackParam::PlayingTechnique, u"Espressivo");
 
-    PlaybackParamList studio, pop;
-    for (staff_layer_idx_t i = startIdx; i < endIdx; ++i) {
-        studio.emplace_back(PlaybackParam { mpe::SOUND_PRESET_PARAM_CODE, Val("Studio"), i });
-        pop.emplace_back(PlaybackParam { mpe::SOUND_PRESET_PARAM_CODE, Val("Pop"), i });
+    PlaybackParamLayers expectedParams;
+
+    for (staff_idx_t staffIdx = 0; staffIdx < score->nstaves(); ++staffIdx) {
+        addParamToStaff(sulTasto, staffIdx, timestampFromTicks(score, 1920), expectedParams);
     }
 
-    PlaybackParamList orchestral  { { mpe::SOUND_PRESET_PARAM_CODE, Val("Orchestral"), 1 } }; // "apply to all staves" is off
+    addParamToStaff(bartok, 0, timestampFromTicks(score, 3840), expectedParams);
+    addParamToStaff(pizz, 1, timestampFromTicks(score, 3840), expectedParams); // "apply to all staves" is off (apply to 1st staff)
+    addParamToStaff(espressivo, 1, timestampFromTicks(score, 7680), expectedParams); // "apply to all staves" is off (apply to 1st staff)
 
-    PlaybackParamMap expectedParams {
-        { timestampFromTicks(score, 960), studio },
-        { timestampFromTicks(score, 3840), pop },
-        { timestampFromTicks(score, 5760), orchestral },
-    };
+    EXPECT_EQ(actualParams, expectedParams);
 
-    EXPECT_EQ(params, expectedParams);
-
-    // [THEN] We can get the params for a specific tick & staff
-    for (staff_layer_idx_t i = startIdx; i < endIdx; ++i) {
-        params = ctx.playbackParamMap(score, 0, i);
+    // [THEN] We can get the params for a specific track & tick
+    for (track_idx_t trackIdx = part->startTrack(); trackIdx < part->endTrack(); ++trackIdx) {
+        PlaybackParamList params = ctx.playbackParams(trackIdx, 0);
         EXPECT_TRUE(params.empty());
 
-        params = ctx.playbackParamMap(score, 960, i);
-        ASSERT_EQ(params.size(), 1);
-        EXPECT_EQ(params.begin()->second, PlaybackParamList { studio.at(i) });
+        params = ctx.playbackParams(trackIdx, 2000);
+        EXPECT_EQ(params, PlaybackParamList { sulTasto });
 
-        params = ctx.playbackParamMap(score, 4500, i);
-        ASSERT_EQ(params.size(), 1);
-        EXPECT_EQ(params.begin()->second, PlaybackParamList { pop.at(i) });
+        params = ctx.playbackParams(trackIdx, 4500);
 
-        params = ctx.playbackParamMap(score, 8000, i);
+        staff_idx_t staffIdx = track2staff(trackIdx);
 
-        if (i == 1) {
-            ASSERT_EQ(params.size(), 1);
-            EXPECT_EQ(params.begin()->second, orchestral);
+        if (staffIdx == 1) {
+            EXPECT_EQ(params, PlaybackParamList { pizz });
         } else {
-            EXPECT_TRUE(params.empty());
+            EXPECT_EQ(params, PlaybackParamList { bartok });
+        }
+
+        params = ctx.playbackParams(trackIdx, 7680);
+
+        if (staffIdx == 1) {
+            EXPECT_EQ(params, PlaybackParamList { espressivo });
+        } else {
+            EXPECT_EQ(params, PlaybackParamList { bartok });
         }
     }
 
@@ -351,8 +457,8 @@ TEST_F(Engraving_PlaybackContextTests, SoundFlags_MeasureRepeats)
     ctx.update(parts.front()->id(), score);
 
     // [THEN] The actual params match the expectation
-    PlaybackParamList secondMeasureParams { { mpe::PLAY_TECHNIQUE_PARAM_CODE, Val("Espressivo"), 0 } };
-    PlaybackParamList thirdMeasureParams { { mpe::PLAY_TECHNIQUE_PARAM_CODE, Val("bartok"), 0 } };
+    PlaybackParamList secondMeasureParams { { PlaybackParam::PlayingTechnique, u"Espressivo" } };
+    PlaybackParamList thirdMeasureParams { { PlaybackParam::PlayingTechnique, u"bartok" } };
 
     PlaybackParamMap expectedParams {
         { timestampFromTicks(score, 1920), secondMeasureParams },
@@ -361,8 +467,13 @@ TEST_F(Engraving_PlaybackContextTests, SoundFlags_MeasureRepeats)
         { timestampFromTicks(score, 7680), thirdMeasureParams }, // measure repeat
     };
 
-    PlaybackParamMap actualParams = ctx.playbackParamMap(score);
-    EXPECT_EQ(actualParams, expectedParams);
+    PlaybackParamLayers layers = ctx.playbackParamLayers(score);
+    EXPECT_FALSE(layers.empty());
+
+    for (const auto& layer : layers) {
+        const PlaybackParamMap& actualParams = layer.second;
+        EXPECT_EQ(actualParams, expectedParams);
+    }
 }
 
 /**
@@ -399,17 +510,22 @@ TEST_F(Engraving_PlaybackContextTests, SoundFlags_CancelPlayingTechniques)
     }
 
     // [THEN] The actual params match the expectation
-    PlaybackParamList ordinary { { mpe::PLAY_TECHNIQUE_PARAM_CODE, Val(mpe::ORDINARY_PLAYING_TECHNIQUE_CODE), 0 } };
-    PlaybackParamList bartok { { mpe::PLAY_TECHNIQUE_PARAM_CODE, Val("bartok"), 0 } };
+    PlaybackParam ordinary(PlaybackParam::PlayingTechnique, mpe::ORDINARY_PLAYING_TECHNIQUE_CODE);
+    PlaybackParam bartok(PlaybackParam::PlayingTechnique, u"bartok");
 
     PlaybackParamMap expectedParams {
-        { timestampFromTicks(score, 1920), ordinary }, // 2nd measure (cancels Pizz.)
-        { timestampFromTicks(score, 3840), bartok }, // 3rd measure
-        { timestampFromTicks(score, 5760), ordinary }, // 4th (canceled by Arco)
+        { timestampFromTicks(score, 1920), { ordinary } }, // 2nd measure (cancels Pizz.)
+        { timestampFromTicks(score, 3840), { bartok } }, // 3rd measure
+        { timestampFromTicks(score, 5760), { ordinary } }, // 4th (canceled by Arco)
     };
 
-    PlaybackParamMap params = ctx.playbackParamMap(score);
-    EXPECT_EQ(params, expectedParams);
+    PlaybackParamLayers layers = ctx.playbackParamLayers(score);
+    EXPECT_FALSE(layers.empty());
+
+    for (const auto& layer : layers) {
+        const PlaybackParamMap& actualParams = layer.second;
+        EXPECT_EQ(actualParams, expectedParams);
+    }
 
     // [WHEN] Parse the brass part
     const Part* brassPart = parts.at(1);
@@ -429,15 +545,20 @@ TEST_F(Engraving_PlaybackContextTests, SoundFlags_CancelPlayingTechniques)
     }
 
     // [THEN] The actual params match the expectation
-    PlaybackParamList mute { { mpe::PLAY_TECHNIQUE_PARAM_CODE, Val("mute"), 0 } };
+    PlaybackParam mute(PlaybackParam::PlayingTechnique, u"mute");
 
     expectedParams = {
-        { timestampFromTicks(score, 0), mute }, // 1st measure
-        { timestampFromTicks(score, 1920), ordinary }, // 2nd measure (canceled by Open)
+        { timestampFromTicks(score, 0), { mute } }, // 1st measure
+        { timestampFromTicks(score, 1920), { ordinary } }, // 2nd measure (canceled by Open)
     };
 
-    params = ctx.playbackParamMap(score);
-    EXPECT_EQ(params, expectedParams);
+    layers = ctx.playbackParamLayers(score);
+    EXPECT_FALSE(layers.empty());
+
+    for (const auto& layer : layers) {
+        const PlaybackParamMap& actualParams = layer.second;
+        EXPECT_EQ(actualParams, expectedParams);
+    }
 
     delete score;
 }

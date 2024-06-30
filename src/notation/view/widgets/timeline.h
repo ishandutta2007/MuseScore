@@ -106,12 +106,12 @@ struct TimelineTheme {
     QColor metaValuePenColor, metaValueBrushColor;
 };
 
-class Timeline : public QGraphicsView, public muse::async::Asyncable
+class Timeline : public QGraphicsView, public muse::Injectable, public muse::async::Asyncable
 {
     Q_OBJECT
 
-    INJECT(muse::ui::IUiConfiguration, uiConfiguration)
-    INJECT(muse::actions::IActionsDispatcher, dispatcher)
+    muse::Inject<muse::ui::IUiConfiguration> uiConfiguration = { this };
+    muse::Inject<muse::actions::IActionsDispatcher> dispatcher = { this };
 
 public:
     enum class ItemType {
@@ -270,7 +270,5 @@ private:
     QString cursorIsOn(const QPoint& cursorPos);
 };
 }
-
-Q_DECLARE_METATYPE(mu::notation::TRowLabels::MouseOverValue);
 
 #endif // MU_NOTATION_TIMELINE_H

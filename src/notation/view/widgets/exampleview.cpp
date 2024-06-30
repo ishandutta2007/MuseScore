@@ -156,7 +156,7 @@ void ExampleView::drawElements(Painter& painter, const std::vector<EngravingItem
         e->itemDiscovered = 0;
         PointF pos(e->pagePos());
         painter.translate(pos);
-        EngravingItem::renderer()->drawItem(e, &painter);
+        e->renderer()->drawItem(e, &painter);
         painter.translate(-pos);
     }
 }
@@ -185,7 +185,7 @@ void ExampleView::paintEvent(QPaintEvent* event)
 
 void ExampleView::mousePressEvent(QMouseEvent* event)
 {
-    m_moveStartPoint = toLogical(event->pos());
+    m_moveStartPoint = toLogical(event->position());
 }
 
 PointF ExampleView::toLogical(const QPointF& point)
@@ -212,7 +212,7 @@ QSize ExampleView::sizeHint() const
 
 void ExampleView::dragExampleView(QMouseEvent* event)
 {
-    PointF delta = PointF::fromQPointF(event->pos()) - m_matrix.map(m_moveStartPoint);
+    PointF delta = PointF::fromQPointF(event->position()) - m_matrix.map(m_moveStartPoint);
     int dx = delta.x();
     if (dx == 0) {
         return;

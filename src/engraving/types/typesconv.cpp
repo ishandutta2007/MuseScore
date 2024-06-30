@@ -436,6 +436,38 @@ TiePlacement TConv::fromXml(const AsciiStringView& str, TiePlacement def)
     return findTypeByXmlTag<TiePlacement>(TIE_PLACEMENT, str, def);
 }
 
+static const std::vector<Item<VoiceApplication> > VOICE_APPLICATION = {
+    { VoiceApplication::ALL_VOICE_IN_INSTRUMENT, "allInInstrument" },
+    { VoiceApplication::ALL_VOICE_IN_STAFF,      "allInStaff" },
+    { VoiceApplication::CURRENT_VOICE_ONLY,      "currentVoiceOnly" }
+};
+
+AsciiStringView TConv::toXml(VoiceApplication voiceAppl)
+{
+    return findXmlTagByType<VoiceApplication>(VOICE_APPLICATION, voiceAppl);
+}
+
+VoiceApplication TConv::fromXml(const AsciiStringView& str, VoiceApplication def)
+{
+    return findTypeByXmlTag<VoiceApplication>(VOICE_APPLICATION, str, def);
+}
+
+static const std::vector<Item<AutoOnOff> > AUTO_ON_OFF = {
+    { AutoOnOff::AUTO, "auto" },
+    { AutoOnOff::ON,   "on" },
+    { AutoOnOff::OFF,  "off" },
+};
+
+AsciiStringView TConv::toXml(AutoOnOff autoOnOff)
+{
+    return findXmlTagByType<AutoOnOff>(AUTO_ON_OFF, autoOnOff);
+}
+
+AutoOnOff TConv::fromXml(const AsciiStringView& str, AutoOnOff def)
+{
+    return findTypeByXmlTag<AutoOnOff>(AUTO_ON_OFF, str, def);
+}
+
 String TConv::translatedUserName(SymId v)
 {
     return SymNames::translatedUserNameForSymId(v);
@@ -734,58 +766,82 @@ struct DynamicItem
     DynamicType type;
     AsciiStringView xml;
     SymId symId;
+    muse::TranslatableString userName;
 };
 
 static const std::vector<DynamicItem> DYNAMIC_TYPES = {
-    { DynamicType::OTHER,   "other-dynamics",   SymId::noSym },
-    { DynamicType::PPPPPP,  "pppppp",           SymId::dynamicPPPPPP },
-    { DynamicType::PPPPP,   "ppppp",            SymId::dynamicPPPPP },
-    { DynamicType::PPPP,    "pppp",             SymId::dynamicPPPP },
-    { DynamicType::PPP,     "ppp",              SymId::dynamicPPP },
-    { DynamicType::PP,      "pp",               SymId::dynamicPP },
-    { DynamicType::P,       "p",                SymId::dynamicPiano },
+    { DynamicType::OTHER,   "other-dynamics",   SymId::noSym,                      muse::TranslatableString("engraving/dynamictype",
+                                                                                                            "Other dynamic") },
+    { DynamicType::PPPPPP,  "pppppp",           SymId::dynamicPPPPPP,              muse::TranslatableString("engraving/dynamictype",
+                                                                                                            "pppppp (Pianissississississimo)") },
+    { DynamicType::PPPPP,   "ppppp",            SymId::dynamicPPPPP,               muse::TranslatableString("engraving/dynamictype",
+                                                                                                            "ppppp (Pianississississimo)") },
+    { DynamicType::PPPP,    "pppp",             SymId::dynamicPPPP,                muse::TranslatableString("engraving/dynamictype",
+                                                                                                            "pppp (Pianissississimo)") },
+    { DynamicType::PPP,     "ppp",              SymId::dynamicPPP,                 muse::TranslatableString("engraving/dynamictype",
+                                                                                                            "ppp (Pianississimo)") },
+    { DynamicType::PP,      "pp",               SymId::dynamicPP,                  muse::TranslatableString("engraving/dynamictype",
+                                                                                                            "pp (Pianissimo)") },
+    { DynamicType::P,       "p",                SymId::dynamicPiano,               muse::TranslatableString("engraving/dynamictype",
+                                                                                                            "p (Piano)") },
 
-    { DynamicType::MP,      "mp",               SymId::dynamicMP },
-    { DynamicType::MF,      "mf",               SymId::dynamicMF },
+    { DynamicType::MP,      "mp",               SymId::dynamicMP,                  muse::TranslatableString("engraving/dynamictype",
+                                                                                                            "mp (Mezzo-piano)") },
+    { DynamicType::MF,      "mf",               SymId::dynamicMF,                  muse::TranslatableString("engraving/dynamictype",
+                                                                                                            "mf (Mezzo-forte)") },
 
-    { DynamicType::F,       "f",                SymId::dynamicForte },
-    { DynamicType::FF,      "ff",               SymId::dynamicFF },
-    { DynamicType::FFF,     "fff",              SymId::dynamicFFF },
-    { DynamicType::FFFF,    "ffff",             SymId::dynamicFFFF },
-    { DynamicType::FFFFF,   "fffff",            SymId::dynamicFFFFF },
-    { DynamicType::FFFFFF,  "ffffff",           SymId::dynamicFFFFFF },
+    { DynamicType::F,       "f",                SymId::dynamicForte,               muse::TranslatableString("engraving/dynamictype",
+                                                                                                            "f (Forte)") },
+    { DynamicType::FF,      "ff",               SymId::dynamicFF,                  muse::TranslatableString("engraving/dynamictype",
+                                                                                                            "ff (Fortissimo)") },
+    { DynamicType::FFF,     "fff",              SymId::dynamicFFF,                 muse::TranslatableString("engraving/dynamictype",
+                                                                                                            "fff (Fortississimo)") },
+    { DynamicType::FFFF,    "ffff",             SymId::dynamicFFFF,                muse::TranslatableString("engraving/dynamictype",
+                                                                                                            "ffff (Fortissississimo)") },
+    { DynamicType::FFFFF,   "fffff",            SymId::dynamicFFFFF,               muse::TranslatableString("engraving/dynamictype",
+                                                                                                            "fffff (Fortississississimo)") },
+    { DynamicType::FFFFFF,  "ffffff",           SymId::dynamicFFFFFF,              muse::TranslatableString("engraving/dynamictype",
+                                                                                                            "ffffff (Fortissississississimo)") },
 
-    { DynamicType::FP,      "fp",               SymId::dynamicFortePiano },
-    { DynamicType::PF,      "pf",               SymId::noSym },
+    { DynamicType::FP,      "fp",               SymId::dynamicFortePiano,          muse::TranslatableString("engraving/dynamictype",
+                                                                                                            "fp (Fortepiano)") },
+    { DynamicType::PF,      "pf",               SymId::noSym,                      muse::TranslatableString("engraving/dynamictype",
+                                                                                                            "pf (Pianoforte)") },
 
-    { DynamicType::SF,      "sf",               SymId::dynamicSforzando1 },
-    { DynamicType::SFZ,     "sfz",              SymId::dynamicSforzato },
-    { DynamicType::SFF,     "sff",              SymId::noSym },
-    { DynamicType::SFFZ,    "sffz",             SymId::dynamicSforzatoFF },
-    { DynamicType::SFP,     "sfp",              SymId::dynamicSforzandoPiano },
-    { DynamicType::SFPP,    "sfpp",             SymId::dynamicSforzandoPianissimo },
+    { DynamicType::SF,      "sf",               SymId::dynamicSforzando1,          muse::TranslatableString("engraving/dynamictype",
+                                                                                                            "sf (Sforzando)") },
+    { DynamicType::SFZ,     "sfz",              SymId::dynamicSforzato,            muse::TranslatableString("engraving/dynamictype",
+                                                                                                            "sfz (Sforzato)") },
+    { DynamicType::SFF,     "sff",              SymId::noSym,                      muse::TranslatableString("engraving/dynamictype",
+                                                                                                            "sff (Sforzando)") },
+    { DynamicType::SFFZ,    "sffz",             SymId::dynamicSforzatoFF,          muse::TranslatableString("engraving/dynamictype",
+                                                                                                            "sffz (Sforzato)") },
+    { DynamicType::SFFF,    "sfff",             SymId::noSym,                      muse::TranslatableString("engraving/dynamictype",
+                                                                                                            "sfff (Sforzando)") },
+    { DynamicType::SFFFZ,   "sfffz",            SymId::noSym,                      muse::TranslatableString("engraving/dynamictype",
+                                                                                                            "sfffz (Sforzato)") },
+    { DynamicType::SFP,     "sfp",              SymId::dynamicSforzandoPiano,      muse::TranslatableString("engraving/dynamictype",
+                                                                                                            "sfp (Sforzando-piano)") },
+    { DynamicType::SFPP,    "sfpp",             SymId::dynamicSforzandoPianissimo, muse::TranslatableString("engraving/dynamictype",
+                                                                                                            "sfpp (Sforzando-pianissimo)") },
 
-    { DynamicType::RFZ,     "rfz",              SymId::dynamicRinforzando2 },
-    { DynamicType::RF,      "rf",               SymId::dynamicRinforzando1 },
-    { DynamicType::FZ,      "fz",               SymId::dynamicForzando },
-    { DynamicType::M,       "m",                SymId::dynamicMezzo },
-    { DynamicType::R,       "r",                SymId::dynamicRinforzando },
-    { DynamicType::S,       "s",                SymId::dynamicSforzando },
-    { DynamicType::Z,       "z",                SymId::dynamicZ },
-    { DynamicType::N,       "n",                SymId::dynamicNiente },
+    { DynamicType::RFZ,     "rfz",              SymId::dynamicRinforzando2,        muse::TranslatableString("engraving/dynamictype",
+                                                                                                            "rfz (Rinforzando)") },
+    { DynamicType::RF,      "rf",               SymId::dynamicRinforzando1,        muse::TranslatableString("engraving/dynamictype",
+                                                                                                            "rf (Rinforzando)") },
+    { DynamicType::FZ,      "fz",               SymId::dynamicForzando,            muse::TranslatableString("engraving/dynamictype",
+                                                                                                            "fz (Forzando)") },
+    { DynamicType::M,       "m",                SymId::dynamicMezzo,               muse::TranslatableString("engraving/dynamictype",
+                                                                                                            "m (Mezzo)") },
+    { DynamicType::R,       "r",                SymId::dynamicRinforzando,         muse::TranslatableString("engraving/dynamictype",
+                                                                                                            "r (Rinforzando)") },
+    { DynamicType::S,       "s",                SymId::dynamicSforzando,           muse::TranslatableString("engraving/dynamictype",
+                                                                                                            "s (Sforzando)") },
+    { DynamicType::Z,       "z",                SymId::dynamicZ,                   muse::TranslatableString("engraving/dynamictype",
+                                                                                                            "z (Forzando)") },
+    { DynamicType::N,       "n",                SymId::dynamicNiente,              muse::TranslatableString("engraving/dynamictype",
+                                                                                                            "n (Niente)") },
 };
-
-String TConv::translatedUserName(DynamicType v)
-{
-    auto it = std::find_if(DYNAMIC_TYPES.cbegin(), DYNAMIC_TYPES.cend(), [v](const DynamicItem& i) {
-        return i.type == v;
-    });
-
-    IF_ASSERT_FAILED(it != DYNAMIC_TYPES.cend()) {
-        return String();
-    }
-    return String::fromAscii(it->xml.ascii());
-}
 
 SymId TConv::symId(DynamicType v)
 {
@@ -887,6 +943,36 @@ DynamicType TConv::dynamicType(const AsciiStringView& tag)
     return DynamicType::OTHER;
 }
 
+bool TConv::dynamicValid(const AsciiStringView& tag)
+{
+    auto it = std::find_if(DYNAMIC_TYPES.cbegin(), DYNAMIC_TYPES.cend(), [tag](const DynamicItem& i) {
+        return i.xml == tag;
+    });
+
+    if (it != DYNAMIC_TYPES.cend()) {
+        return true;
+    }
+    return false;
+}
+
+const muse::TranslatableString& TConv::userName(DynamicType v)
+{
+    auto it = std::find_if(DYNAMIC_TYPES.cbegin(), DYNAMIC_TYPES.cend(), [v](const DynamicItem& i) {
+        return i.type == v;
+    });
+
+    IF_ASSERT_FAILED(it != DYNAMIC_TYPES.cend()) {
+        static TranslatableString dummy;
+        return dummy;
+    }
+    return it->userName;
+}
+
+String TConv::translatedUserName(DynamicType v)
+{
+    return userName(v).translated();
+}
+
 AsciiStringView TConv::toXml(DynamicType v)
 {
     auto it = std::find_if(DYNAMIC_TYPES.cbegin(), DYNAMIC_TYPES.cend(), [v](const DynamicItem& i) {
@@ -898,18 +984,6 @@ AsciiStringView TConv::toXml(DynamicType v)
         return dummy;
     }
     return it->xml;
-}
-
-bool TConv::dynamicValid(const AsciiStringView& tag)
-{
-    auto it = std::find_if(DYNAMIC_TYPES.cbegin(), DYNAMIC_TYPES.cend(), [tag](const DynamicItem& i) {
-        return i.xml == tag;
-    });
-
-    if (it != DYNAMIC_TYPES.cend()) {
-        return true;
-    }
-    return false;
 }
 
 DynamicType TConv::fromXml(const AsciiStringView& tag, DynamicType def)
@@ -2189,33 +2263,49 @@ size_t TConv::embellishmentsCount()
     return EMBELLISHMENT_TYPES.size();
 }
 
+struct ChordLineNameType {
+    ChordLineType type;
+    bool straight;
+    bool wavy;
+
+    bool operator==(const ChordLineNameType& other) const
+    {
+        return type == other.type && straight == other.straight && wavy == other.wavy;
+    }
+};
+
 //! TODO Add xml names
-static const std::array<Item<std::pair<ChordLineType, bool /*straight*/> >, 10> CHORDLINE_TYPES = { {
-    { { ChordLineType::NOTYPE, false },    "0" },
-    { { ChordLineType::FALL, false },      "1",     muse::TranslatableString("engraving", "Fall") },
-    { { ChordLineType::DOIT, false },      "2",     muse::TranslatableString("engraving", "Doit") },
-    { { ChordLineType::PLOP, false },      "3",     muse::TranslatableString("engraving", "Plop") },
-    { { ChordLineType::SCOOP, false },     "4",     muse::TranslatableString("engraving", "Scoop") },
-    { { ChordLineType::NOTYPE, true },     "0" },
-    { { ChordLineType::FALL, true },       "1",     muse::TranslatableString("engraving", "Slide out down") },
-    { { ChordLineType::DOIT, true },       "2",     muse::TranslatableString("engraving", "Slide out up") },
-    { { ChordLineType::PLOP, true },       "3",     muse::TranslatableString("engraving", "Slide in above") },
-    { { ChordLineType::SCOOP, true },      "4",     muse::TranslatableString("engraving", "Slide in below") }
+static const std::array<Item<ChordLineNameType>, 15> CHORDLINE_TYPES = { {
+    { { ChordLineType::NOTYPE, false, false },    "0" },
+    { { ChordLineType::FALL, false, false },      "1",     muse::TranslatableString("engraving", "Fall") },
+    { { ChordLineType::DOIT, false, false },      "2",     muse::TranslatableString("engraving", "Doit") },
+    { { ChordLineType::PLOP, false, false },      "3",     muse::TranslatableString("engraving", "Plop") },
+    { { ChordLineType::SCOOP, false, false },     "4",     muse::TranslatableString("engraving", "Scoop") },
+    { { ChordLineType::NOTYPE, true, false },     "0" },
+    { { ChordLineType::FALL, true, false },       "1",     muse::TranslatableString("engraving", "Slide out down") },
+    { { ChordLineType::DOIT, true, false },       "2",     muse::TranslatableString("engraving", "Slide out up") },
+    { { ChordLineType::PLOP, true, false },       "3",     muse::TranslatableString("engraving", "Slide in above") },
+    { { ChordLineType::SCOOP, true, false },      "4",     muse::TranslatableString("engraving", "Slide in below") },
+    { { ChordLineType::NOTYPE, true, true },      "0" },
+    { { ChordLineType::FALL, true, true },        "1",     muse::TranslatableString("engraving", "Slide out down (rough)") },
+    { { ChordLineType::DOIT, true, true },        "2",     muse::TranslatableString("engraving", "Slide out up (rough)") },
+    { { ChordLineType::PLOP, true, true },        "3",     muse::TranslatableString("engraving", "Slide in above (rough)") },
+    { { ChordLineType::SCOOP, true, true },       "4",     muse::TranslatableString("engraving", "Slide in below (rough)") }
 } };
 
-const muse::TranslatableString& TConv::userName(ChordLineType v, bool straight)
+const muse::TranslatableString& TConv::userName(ChordLineType v, bool straight, bool wavy)
 {
-    return findUserNameByType<std::pair<ChordLineType, bool> >(CHORDLINE_TYPES, { v, straight });
+    return findUserNameByType<ChordLineNameType>(CHORDLINE_TYPES, { v, straight, wavy });
 }
 
 AsciiStringView TConv::toXml(ChordLineType v)
 {
-    return findXmlTagByType<std::pair<ChordLineType, bool> >(CHORDLINE_TYPES, { v, false });
+    return findXmlTagByType<ChordLineNameType>(CHORDLINE_TYPES, { v, false, false });
 }
 
 ChordLineType TConv::fromXml(const AsciiStringView& tag, ChordLineType def)
 {
-    return findTypeByXmlTag<std::pair<ChordLineType, bool> >(CHORDLINE_TYPES, tag, { def, false }).first;
+    return findTypeByXmlTag<ChordLineNameType>(CHORDLINE_TYPES, tag, { def, false, false }).type;
 }
 
 struct DrumPitchItem {

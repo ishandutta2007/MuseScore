@@ -288,7 +288,7 @@ void MeasureLayout::createMMRest(LayoutContext& ctx, Measure* firstMeasure, Meas
     ElementList oldList = mmrMeasure->takeElements();
     ElementList newList = lastMeasure->el();
     for (EngravingItem* e : firstMeasure->el()) {
-        if (e->isMarker()) {
+        if (e->isMarker() && firstMeasure != lastMeasure) {
             newList.push_back(e);
         }
     }
@@ -796,6 +796,9 @@ void MeasureLayout::createMultiMeasureRestsIfNeed(MeasureBase* currentMB, Layout
             }
             firstMeasure->setMMRestCount(0);
             ctx.mutState().setMeasureNo(mno);
+            if (lastMeasure->endTick() > ctx.state().endTick()) {
+                ctx.mutState().setEndTick(lastMeasure->endTick());
+            }
         }
     } else if (firstMeasure->isMMRest()) {
         LOGD("mmrest: no %d += %d", ctx.state().measureNo(), firstMeasure->mmRestCount());
@@ -2140,7 +2143,7 @@ void MeasureLayout::computeWidth(Measure* m, LayoutContext& ctx, Fraction minTic
     Segment* s = nullptr;
 
     // skip disabled segment
-    for (s = m->first(); s && (!s->enabled() || s->allElementsInvisible()); s = s->next()) {
+    for (s = m->first(); s && (!s->enabled() || !s->isActive() || s->allElementsInvisible()); s = s->next()) {
         s->mutldata()->setPosX(HorizontalSpacing::computeFirstSegmentXPosition(m, s, ctx.state().segmentShapeSqueezeFactor()));  // this is where placement of hidden key/time sigs is set
         s->setWidth(0);                                // it shouldn't affect the width of the bar no matter what it is
     }
@@ -2149,60 +2152,43 @@ void MeasureLayout::computeWidth(Measure* m, LayoutContext& ctx, Fraction minTic
         return;
     }
     double x = 0.0;
-    bool first = m->isFirstInSystem();
-
-    // left barriere:
-    //    Make sure no elements crosses the left boarder if first measure in a system.
-    //
-    Shape ls(first ? RectF(0.0, -DBL_MAX, 0.0, DBL_MAX) : RectF(0.0, 0.0, 0.0, m->spatium() * 4));
-
-    x = HorizontalSpacing::minLeft(s, ls);
-
-    if (s->isStartRepeatBarLineType()) {
-        System* sys = m->system();
-        MeasureBase* pmb = m->prev();
-        if (pmb && pmb->isMeasure() && pmb->system() == sys && pmb->repeatEnd()) {
-            Segment* seg = toMeasure(pmb)->last();
-            // overlap end repeat barline with start repeat barline
-            if (seg->isEndBarLineType()) {
-                x -= ctx.conf().styleMM(Sid::endBarWidth) * m->mag();
-            }
-        }
-    }
 
     ChordLayout::updateGraceNotes(m, ctx);
 
     x = HorizontalSpacing::computeFirstSegmentXPosition(m, s, ctx.state().segmentShapeSqueezeFactor());
     bool isSystemHeader = s->header();
 
-    m->setSqueezableSpace(0.0);
     computeWidth(m, ctx, s, x, isSystemHeader, minTicks, maxTicks, stretchCoeff, overrideMinMeasureWidth);
 }
 
 void MeasureLayout::layoutTimeTickAnchors(Measure* m, LayoutContext& ctx)
 {
-    bool darker = false;
+    bool darker = true;
     for (Segment& segment : m->segments()) {
         if (!segment.isTimeTickType()) {
             continue;
         }
 
-        Segment* prevSeg = segment.prev();
-        while (prevSeg && !prevSeg->isChordRestType()) {
-            prevSeg = prevSeg->prev();
+        Segment* refCRSeg = m->findSegmentR(SegmentType::ChordRest, segment.rtick());
+        if (!refCRSeg) {
+            refCRSeg = segment.prev();
+            while (refCRSeg && !refCRSeg->isChordRestType()) {
+                refCRSeg = refCRSeg->prev();
+            }
         }
-        if (!prevSeg || prevSeg->ticks().isZero()) {
+
+        if (!refCRSeg || refCRSeg->ticks().isZero()) {
             continue;
         }
 
-        Fraction prevSegDuration = prevSeg->ticks();
+        Fraction refSegDuration = refCRSeg->ticks();
         Fraction thisDuration = segment.ticks();
-        Fraction relativeTick = segment.rtick() - prevSeg->rtick();
+        Fraction relativeTick = segment.rtick() - refCRSeg->rtick();
 
-        double relativeX = prevSeg->width() * (relativeTick.toDouble() / prevSeg->ticks().toDouble());
-        double relativeWidth = prevSeg->width() * (thisDuration.toDouble() / prevSegDuration.toDouble());
+        double relativeX = refCRSeg->width() * (relativeTick.toDouble() / refCRSeg->ticks().toDouble());
+        double relativeWidth = refCRSeg->width() * (thisDuration.toDouble() / refSegDuration.toDouble());
 
-        segment.mutldata()->setPosX(prevSeg->x() + relativeX);
+        segment.mutldata()->setPosX(refCRSeg->x() + relativeX);
         segment.setWidth(relativeWidth);
 
         for (EngravingItem* item : segment.elist()) {
@@ -2241,8 +2227,16 @@ void MeasureLayout::computeWidth(Measure* m, LayoutContext& ctx, Segment* s, dou
     double usrStretch = std::max(m->userStretch(), double(0.1)); // Avoids stretch going to zero
     usrStretch = std::min(usrStretch, double(10)); // Higher values may cause the spacing to break (10 is already ridiculously high and no user should even use that)
 
+    if (s->rtick().isZero()) {
+        m->setSqueezableSpace(0.0); // TODO: store squeezableSpace segment by segment
+    }
     // PASS 1: compute the spacing of all left-aligned segments by stacking them one after the other
     while (s) {
+        if (s->isTimeTickType()) {
+            s = s->next();
+            continue;
+        }
+
         s->setWidthOffset(0.0);
         s->mutldata()->setPosX(x);
         // skip disabled / invisible segments
@@ -2250,8 +2244,7 @@ void MeasureLayout::computeWidth(Measure* m, LayoutContext& ctx, Segment* s, dou
         // skipped in computeMinWidth() -- the only way this would be an issue here is
         // if this method was called specifically with the invisible segment specified
         // which I'm pretty sure doesn't happen at this point. still...
-        if (!s->enabled() || !s->visible() || s->allElementsInvisible() || (s->isRightAligned() && s != m->firstEnabled())
-            || s->isTimeTickType()) {
+        if (!s->enabled() || !s->visible() || s->allElementsInvisible() || (s->isRightAligned() && s != m->firstEnabled())) {
             s->setWidth(0);
             s = s->next();
             continue;
@@ -2446,10 +2439,10 @@ void MeasureLayout::layoutPartialWidth(StaffLines* lines, LayoutContext& ctx, do
         const StaffType* st = s->staffType(lines->measure()->tick());
         dist         *= st->lineDistance().val();
         _lines        = st->lines();
-        lines->mutldata()->setPosY(st->yoffset().val() * _spatium);
+        lines->mutldata()->setPosY(lines->staffOffsetY());
     } else {
         _lines = 5;
-        lines->setColor(EngravingItem::engravingConfiguration()->defaultColor());
+        lines->setColor(lines->configuration()->defaultColor());
     }
     lines->setLw(ctx.conf().styleS(Sid::staffLineWidth).val() * _spatium);
     double x1 = lines->pos().x();

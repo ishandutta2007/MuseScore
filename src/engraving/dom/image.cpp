@@ -54,7 +54,7 @@ static bool defaultSizeIsSpatium    = true;
 //---------------------------------------------------------
 
 Image::Image(EngravingItem* parent)
-    : BSymbol(ElementType::IMAGE, parent, ElementFlag::MOVABLE)
+    : BSymbol(ElementType::IMAGE, parent, ElementFlag::MOVABLE), muse::Injectable(BSymbol::iocContext())
 {
     m_imageType        = ImageType::NONE;
     m_size            = SizeF(0.0, 0.0);
@@ -67,7 +67,7 @@ Image::Image(EngravingItem* parent)
 }
 
 Image::Image(const Image& img)
-    : BSymbol(img)
+    : BSymbol(img), muse::Injectable(img.muse::Injectable::iocContext())
 {
     m_imageType        = img.m_imageType;
     m_buffer           = img.m_buffer;
@@ -235,7 +235,7 @@ bool Image::load()
         path = m_linkPath;
     }
 
-    if (path.withSuffix("svg")) {
+    if (path.withSuffix("svg") || path.withSuffix("svgz")) {
         setImageType(ImageType::SVG);
     } else {
         setImageType(ImageType::RASTER);
@@ -277,7 +277,7 @@ bool Image::load(const muse::io::path_t& ss)
     m_linkPath = fi.canonicalFilePath();
     m_storeItem = imageStore.add(m_linkPath, ba);
     m_storeItem->reference(this);
-    if (path.withSuffix("svg")) {
+    if (path.withSuffix("svg") || path.withSuffix("svgz")) {
         setImageType(ImageType::SVG);
     } else {
         setImageType(ImageType::RASTER);
@@ -297,7 +297,7 @@ bool Image::loadFromData(const path_t& name, const muse::ByteArray& ba)
     m_linkPath = u"";
     m_storeItem = imageStore.add(name, ba);
     m_storeItem->reference(this);
-    if (name.withSuffix("svg")) {
+    if (name.withSuffix("svg") || name.withSuffix("svgz")) {
         setImageType(ImageType::SVG);
     } else {
         setImageType(ImageType::RASTER);

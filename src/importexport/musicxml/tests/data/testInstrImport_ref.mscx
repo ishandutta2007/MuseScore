@@ -235,7 +235,7 @@
           </StaffType>
         <hideWhenEmpty>3</hideWhenEmpty>
         </Staff>
-      <trackName>Bb Clarinet</trackName>
+      <trackName>B♭ Clarinet</trackName>
       <Instrument id="bb-clarinet">
         <longName>B♭ Clarinet</longName>
         <shortName>B¯ Clarinet B¯ Bass Clar.</shortName>
@@ -300,7 +300,7 @@
           </StaffType>
         <hideWhenEmpty>3</hideWhenEmpty>
         </Staff>
-      <trackName>Eb Alto Clarinet</trackName>
+      <trackName>E♭ Alto Clarinet</trackName>
       <Instrument id="alto-clarinet">
         <longName>E♭ Alto Clarinet</longName>
         <shortName>Alto Cl.</shortName>
@@ -365,7 +365,7 @@
           </StaffType>
         <hideWhenEmpty>3</hideWhenEmpty>
         </Staff>
-      <trackName>Bb Bass Clarinet</trackName>
+      <trackName>B♭ Bass Clarinet</trackName>
       <Instrument id="bb-bass-clarinet">
         <longName>B♭ Bass Clarinet</longName>
         <shortName>B. Cl.</shortName>
@@ -432,7 +432,7 @@
           </StaffType>
         <hideWhenEmpty>3</hideWhenEmpty>
         </Staff>
-      <trackName>Eb Alto Sax.</trackName>
+      <trackName>E♭ Alto Sax.</trackName>
       <Instrument id="alto-saxophone">
         <longName>E♭ Alto Sax.</longName>
         <shortName>E¯ Alto Sax. E¯ Bar. Sax.</shortName>
@@ -497,7 +497,7 @@
           </StaffType>
         <hideWhenEmpty>3</hideWhenEmpty>
         </Staff>
-      <trackName> Bb Tenor Sax.</trackName>
+      <trackName> B♭ Tenor Sax.</trackName>
       <Instrument id="tenor-saxophone">
         <longName> B♭ Tenor Sax.</longName>
         <shortName>Ten. Sax.</shortName>
@@ -564,7 +564,7 @@
           </StaffType>
         <hideWhenEmpty>3</hideWhenEmpty>
         </Staff>
-      <trackName>Eb Baritone Sax.</trackName>
+      <trackName>E♭ Baritone Sax.</trackName>
       <Instrument id="baritone-saxophone">
         <longName>E♭ Baritone Sax.</longName>
         <shortName>Bari. Sax.</shortName>
@@ -631,7 +631,7 @@
           </StaffType>
         <hideWhenEmpty>3</hideWhenEmpty>
         </Staff>
-      <trackName>Bb Trumpet</trackName>
+      <trackName>B♭ Trumpet</trackName>
       <Instrument id="bb-trumpet">
         <longName>B♭ Trumpet</longName>
         <shortName>Tpt.</shortName>
@@ -1225,7 +1225,7 @@
           <head>cross</head>
           <line>-2</line>
           <voice>0</voice>
-          <name>Ride Cymbal 2</name>
+          <name>Hand Cymbals</name>
           <stem>1</stem>
           <shortcut>C</shortcut>
           </Drum>

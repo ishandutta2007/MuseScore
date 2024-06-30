@@ -239,6 +239,10 @@ public:
     double spaceRw() { return m_spaceRw; }
     void setSpaceRw(double rw) { m_spaceRw = rw; }
 
+    bool combineVoice() const { return m_combineVoice; }
+    void setCombineVoice(bool v) { m_combineVoice = v; }
+    inline static bool combineVoice(const Chord* chord1, const Chord* chord2) { return chord1->combineVoice() && chord2->combineVoice(); }
+
     PlayEventType playEventType() const { return m_playEventType; }
     void setPlayEventType(PlayEventType v) { m_playEventType = v; }
     std::vector<NoteEventList> getNoteEventLists();
@@ -267,9 +271,11 @@ public:
 
     void sortNotes();
 
-    Chord* nextTiedChord(bool backwards = false, bool sameSize = true);
+    Chord* nextTiedChord(bool backwards = false, bool sameSize = true) const;
     bool containsTieEnd() const;
     bool containsTieStart() const;
+
+    Fraction endTickIncludingTied() const;
 
     EngravingItem* nextElement() override;
     EngravingItem* prevElement() override;
@@ -292,7 +298,7 @@ public:
     bool allowKerningBelow() const { return m_allowKerningBelow; }
     void computeKerningExceptions();
 
-    Ornament* findOrnament() const;
+    Ornament* findOrnament(bool forPlayback = false) const;
 
     const std::set<Spanner*>& startingSpanners() const { return m_startingSpanners; }
     const std::set<Spanner*>& endingSpanners() const { return m_endingSpanners; }
@@ -389,6 +395,8 @@ private:
 
     bool m_allowKerningAbove = true;
     bool m_allowKerningBelow = true;
+
+    bool m_combineVoice = true;
 
     std::vector<Articulation*> m_articulations;
 };

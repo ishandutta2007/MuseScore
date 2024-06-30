@@ -33,21 +33,14 @@ class Note;
 }
 
 namespace mu::notation {
-//---------------------------------------------------------
-//   SelectNoteDialog
-//---------------------------------------------------------
-
-class SelectNoteDialog : public QDialog, Ui::SelectNoteDialog
+class SelectNoteDialog : public QDialog, Ui::SelectNoteDialog, public muse::Injectable
 {
     Q_OBJECT
-    INJECT(context::IGlobalContext, globalContext)
+
+    muse::Inject<context::IGlobalContext> globalContext = { this };
 
 public:
     SelectNoteDialog(QWidget* parent = nullptr);
-
-#ifdef MU_QT5_COMPAT
-    SelectNoteDialog(const SelectNoteDialog& other);
-#endif
 
     bool doReplace() const;
     bool doAdd() const;

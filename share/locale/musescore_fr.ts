@@ -216,57 +216,57 @@
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="57"/>
         <source>Octave 9</source>
-        <translation>Octave 8</translation>
+        <translation>Octave 9</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="62"/>
         <source>Octave 8</source>
-        <translation>Octave 7</translation>
+        <translation>Octave 8</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="67"/>
         <source>Octave 7</source>
-        <translation>Octave 6</translation>
+        <translation>Octave 7</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="72"/>
         <source>Octave 6</source>
-        <translation>Octave 5</translation>
+        <translation>Octave 6</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="77"/>
         <source>Octave 5</source>
-        <translation>Octave 4</translation>
+        <translation>Octave 5</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="82"/>
         <source>Octave 4</source>
-        <translation>Octave 3</translation>
+        <translation>Octave 4</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="87"/>
         <source>Octave 3</source>
-        <translation>Octave 2</translation>
+        <translation>Octave 3</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="92"/>
         <source>Octave 2</source>
-        <translation>Octave 1</translation>
+        <translation>Octave 2</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="97"/>
         <source>Octave 1</source>
-        <translation>Octave -1</translation>
+        <translation>Octave 1</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="102"/>
         <source>Octave 0</source>
-        <translation>Octave -2</translation>
+        <translation>Octave 0</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="107"/>
         <source>Octave -1</source>
-        <translation>Octave -3</translation>
+        <translation>Octave -1</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="112"/>
@@ -337,651 +337,651 @@
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="177"/>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="344"/>
         <source>C 9</source>
-        <translation>Do 8</translation>
+        <translation>Do 9</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="182"/>
         <source>C♯ 9</source>
-        <translation>Do♯ 8</translation>
+        <translation>Do♯ 9</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="187"/>
         <source>D 9</source>
-        <translation>Ré 8</translation>
+        <translation>Ré 9</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="192"/>
         <source>E♭ 9</source>
-        <translation>Mi♭ 8</translation>
+        <translation>Mi♭ 9</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="197"/>
         <source>E 9</source>
-        <translation>Mi 8</translation>
+        <translation>Mi 9</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="202"/>
         <source>F 9</source>
-        <translation>Fa 8</translation>
+        <translation>Fa 9</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="207"/>
         <source>F♯ 9</source>
-        <translation>Fa♯ 8</translation>
+        <translation>Fa♯ 9</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="212"/>
         <source>G 9</source>
-        <translation>Sol 8</translation>
+        <translation>Sol 9</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="242"/>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="454"/>
         <source>C 8</source>
-        <translation>Do 7</translation>
+        <translation>Do 8</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="256"/>
         <source>C♯ 8</source>
-        <translation>Do♯ 7</translation>
+        <translation>Do♯ 8</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="264"/>
         <source>D 8</source>
-        <translation>Ré 7</translation>
+        <translation>Ré 8</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="272"/>
         <source>E♭ 8</source>
-        <translation>Mi♭ 7</translation>
+        <translation>Mi♭ 8</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="280"/>
         <source>E 8</source>
-        <translation>Mi 7</translation>
+        <translation>Mi 8</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="288"/>
         <source>F 8</source>
-        <translation>Fa 7</translation>
+        <translation>Fa 8</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="296"/>
         <source>F♯ 8</source>
-        <translation>Fa♯ 7</translation>
+        <translation>Fa♯ 8</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="304"/>
         <source>G 8</source>
-        <translation>Sol 7</translation>
+        <translation>Sol 8</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="312"/>
         <source>A♭ 8</source>
-        <translation>La♭ 7</translation>
+        <translation>La♭ 8</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="320"/>
         <source>A 8</source>
-        <translation>La 7</translation>
+        <translation>La 8</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="328"/>
         <source>B♭ 8</source>
-        <translation>Si♭ 7</translation>
+        <translation>Si♭ 8</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="336"/>
         <source>B 8</source>
-        <translation>Si 7</translation>
+        <translation>Si 8</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="352"/>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="564"/>
         <source>C 7</source>
-        <translation>Do 6</translation>
+        <translation>Do 7</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="366"/>
         <source>C♯ 7</source>
-        <translation>Do♯ 6</translation>
+        <translation>Do♯ 7</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="374"/>
         <source>D 7</source>
-        <translation>Ré 6</translation>
+        <translation>Ré 7</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="382"/>
         <source>E♭ 7</source>
-        <translation>Mi♭ 6</translation>
+        <translation>Mi♭ 7</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="390"/>
         <source>E 7</source>
-        <translation>Mi 6</translation>
+        <translation>Mi 7</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="398"/>
         <source>F 7</source>
-        <translation>Fa 6</translation>
+        <translation>Fa 7</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="406"/>
         <source>F♯ 7</source>
-        <translation>Fa♯ 6</translation>
+        <translation>Fa♯ 7</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="414"/>
         <source>G 7</source>
-        <translation>Sol 6</translation>
+        <translation>Sol 7</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="422"/>
         <source>A♭ 7</source>
-        <translation>La♭ 6</translation>
+        <translation>La♭ 7</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="430"/>
         <source>A 7</source>
-        <translation>La 6</translation>
+        <translation>La 7</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="438"/>
         <source>B♭ 7</source>
-        <translation>Si♭ 6</translation>
+        <translation>Si♭ 7</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="446"/>
         <source>B 7</source>
-        <translation>Si 6</translation>
+        <translation>Si 7</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="462"/>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="674"/>
         <source>C 6</source>
-        <translation>Do 5</translation>
+        <translation>Do 6</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="476"/>
         <source>C♯ 6</source>
-        <translation>Do♯ 5</translation>
+        <translation>Do♯ 6</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="484"/>
         <source>D 6</source>
-        <translation>Ré 5</translation>
+        <translation>Ré 6</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="492"/>
         <source>E♭ 6</source>
-        <translation>Mi♭ 5</translation>
+        <translation>Mi♭ 6</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="500"/>
         <source>E 6</source>
-        <translation>Mi 5</translation>
+        <translation>Mi 6</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="508"/>
         <source>F 6</source>
-        <translation>Fa 5</translation>
+        <translation>Fa 6</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="516"/>
         <source>F♯ 6</source>
-        <translation>Fa♯ 5</translation>
+        <translation>Fa♯ 6</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="524"/>
         <source>G 6</source>
-        <translation>Sol 5</translation>
+        <translation>Sol 6</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="532"/>
         <source>A♭ 6</source>
-        <translation>La♭ 5</translation>
+        <translation>La♭ 6</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="540"/>
         <source>A 6</source>
-        <translation>La 5</translation>
+        <translation>La 6</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="548"/>
         <source>B♭ 6</source>
-        <translation>Si♭ 5</translation>
+        <translation>Si♭ 6</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="556"/>
         <source>B 6</source>
-        <translation>Si 5</translation>
+        <translation>Si 6</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="572"/>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="784"/>
         <source>C 5</source>
-        <translation>Do 4</translation>
+        <translation>Do 5</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="586"/>
         <source>C♯ 5</source>
-        <translation>Do♯ 4</translation>
+        <translation>Do♯ 5</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="594"/>
         <source>D 5</source>
-        <translation>Ré 4</translation>
+        <translation>Ré 5</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="602"/>
         <source>E♭ 5</source>
-        <translation>Mi♭ 4</translation>
+        <translation>Mi♭ 5</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="610"/>
         <source>E 5</source>
-        <translation>Mi 4</translation>
+        <translation>Mi 5</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="618"/>
         <source>F 5</source>
-        <translation>Fa 4</translation>
+        <translation>Fa 5</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="626"/>
         <source>F♯ 5</source>
-        <translation>Fa♯ 4</translation>
+        <translation>Fa♯ 5</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="634"/>
         <source>G 5</source>
-        <translation>Sol 4</translation>
+        <translation>Sol 5</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="642"/>
         <source>A♭ 5</source>
-        <translation>La♭ 4</translation>
+        <translation>La♭ 5</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="650"/>
         <source>A 5</source>
-        <translation>La 4</translation>
+        <translation>La 5</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="658"/>
         <source>B♭ 5</source>
-        <translation>Si♭ 4</translation>
+        <translation>Si♭ 5</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="666"/>
         <source>B 5</source>
-        <translation>Si 4</translation>
+        <translation>Si 5</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="682"/>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="894"/>
         <source>C 4</source>
-        <translation>Do 3</translation>
+        <translation>Do 4</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="696"/>
         <source>C♯ 4</source>
-        <translation>Do♯ 3</translation>
+        <translation>Do♯ 4</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="704"/>
         <source>D 4</source>
-        <translation>Ré 3</translation>
+        <translation>Ré 4</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="712"/>
         <source>E♭ 4</source>
-        <translation>Mi♭ 3</translation>
+        <translation>Mi♭ 4</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="720"/>
         <source>E 4</source>
-        <translation>Mi 3</translation>
+        <translation>Mi 4</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="728"/>
         <source>F 4</source>
-        <translation>Fa 3</translation>
+        <translation>Fa 4</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="736"/>
         <source>F♯ 4</source>
-        <translation>Fa♯ 3</translation>
+        <translation>Fa♯ 4</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="744"/>
         <source>G 4</source>
-        <translation>Sol 3</translation>
+        <translation>Sol 4</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="752"/>
         <source>A♭ 4</source>
-        <translation>La♭ 3</translation>
+        <translation>La♭ 4</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="760"/>
         <source>A 4</source>
-        <translation>La 3</translation>
+        <translation>La 4</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="768"/>
         <source>B♭ 4</source>
-        <translation>Si♭ 3</translation>
+        <translation>Si♭ 4</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="776"/>
         <source>B 4</source>
-        <translation>Si 3</translation>
+        <translation>Si 4</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="792"/>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="1004"/>
         <source>C 3</source>
-        <translation>Do 2</translation>
+        <translation>Do 3</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="806"/>
         <source>C♯ 3</source>
-        <translation>Do♯ 2</translation>
+        <translation>Do♯ 3</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="814"/>
         <source>D 3</source>
-        <translation>Ré 2</translation>
+        <translation>Ré 3</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="822"/>
         <source>E♭ 3</source>
-        <translation>Mi♭ 2</translation>
+        <translation>Mi♭ 3</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="830"/>
         <source>E 3</source>
-        <translation>Mi 2</translation>
+        <translation>Mi 3</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="838"/>
         <source>F 3</source>
-        <translation>Fa 2</translation>
+        <translation>Fa 3</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="846"/>
         <source>F♯ 3</source>
-        <translation>Fa♯ 2</translation>
+        <translation>Fa♯ 3</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="854"/>
         <source>G 3</source>
-        <translation>Sol 2</translation>
+        <translation>Sol 3</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="862"/>
         <source>A♭ 3</source>
-        <translation>La♭ 2</translation>
+        <translation>La♭ 3</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="870"/>
         <source>A 3</source>
-        <translation>La 2</translation>
+        <translation>La 3</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="878"/>
         <source>B♭ 3</source>
-        <translation>Si♭ 2</translation>
+        <translation>Si♭ 3</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="886"/>
         <source>B 3</source>
-        <translation>Si 2</translation>
+        <translation>Si 3</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="902"/>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="1114"/>
         <source>C 2</source>
-        <translation>Do 1</translation>
+        <translation>Do 2</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="916"/>
         <source>C♯ 2</source>
-        <translation>Do♯ 1</translation>
+        <translation>Do♯ 2</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="924"/>
         <source>D 2</source>
-        <translation>Ré 1</translation>
+        <translation>Ré 2</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="932"/>
         <source>E♭ 2</source>
-        <translation>Mi♭ 1</translation>
+        <translation>Mi♭ 2</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="940"/>
         <source>E 2</source>
-        <translation>Mi 1</translation>
+        <translation>Mi 2</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="948"/>
         <source>F 2</source>
-        <translation>Fa 1</translation>
+        <translation>Fa 2</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="956"/>
         <source>F♯ 2</source>
-        <translation>Fa♯ 1</translation>
+        <translation>Fa♯ 2</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="964"/>
         <source>G 2</source>
-        <translation>Sol 1</translation>
+        <translation>Sol 2</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="972"/>
         <source>A♭ 2</source>
-        <translation>La♭ 1</translation>
+        <translation>La♭ 2</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="980"/>
         <source>A 2</source>
-        <translation>La 1</translation>
+        <translation>La 2</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="988"/>
         <source>B♭ 2</source>
-        <translation>Si♭ 1</translation>
+        <translation>Si♭ 2</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="996"/>
         <source>B 2</source>
-        <translation>Si 1</translation>
+        <translation>Si 2</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="1012"/>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="1224"/>
         <source>C 1</source>
-        <translation>Do -1</translation>
+        <translation>Do 1</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="1026"/>
         <source>C♯ 1</source>
-        <translation>Do♯ -1</translation>
+        <translation>Do♯ 1</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="1034"/>
         <source>D 1</source>
-        <translation>Ré -1</translation>
+        <translation>Ré 1</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="1042"/>
         <source>E♭ 1</source>
-        <translation>Mi♭ -1</translation>
+        <translation>Mi♭ 1</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="1050"/>
         <source>E 1</source>
-        <translation>Mi -1</translation>
+        <translation>Mi 1</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="1058"/>
         <source>F 1</source>
-        <translation>Fa -1</translation>
+        <translation>Fa 1</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="1066"/>
         <source>F♯ 1</source>
-        <translation>Fa♯ -1</translation>
+        <translation>Fa♯ 1</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="1074"/>
         <source>G 1</source>
-        <translation>Sol -1</translation>
+        <translation>Sol 1</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="1082"/>
         <source>A♭ 1</source>
-        <translation>La♭ -1</translation>
+        <translation>La♭ 1</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="1090"/>
         <source>A 1</source>
-        <translation>La -1</translation>
+        <translation>La 1</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="1098"/>
         <source>B♭ 1</source>
-        <translation>Si♭ -1</translation>
+        <translation>Si♭ 1</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="1106"/>
         <source>B 1</source>
-        <translation>Si -1</translation>
+        <translation>Si 1</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="1122"/>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="1334"/>
         <source>C 0</source>
-        <translation>Do -2</translation>
+        <translation>Do 0</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="1136"/>
         <source>C♯ 0</source>
-        <translation>Do♯ -2</translation>
+        <translation>Do♯ 0</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="1144"/>
         <source>D 0</source>
-        <translation>Ré -2</translation>
+        <translation>Ré 0</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="1152"/>
         <source>E♭ 0</source>
-        <translation>Mi♭ -2</translation>
+        <translation>Mi♭ 0</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="1160"/>
         <source>E 0</source>
-        <translation>Mi -2</translation>
+        <translation>Mi 0</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="1168"/>
         <source>F 0</source>
-        <translation>Fa -2</translation>
+        <translation>Fa 0</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="1176"/>
         <source>F♯ 0</source>
-        <translation>Fa♯ -2</translation>
+        <translation>Fa♯ 0</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="1184"/>
         <source>G 0</source>
-        <translation>Sol -2</translation>
+        <translation>Sol 0</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="1192"/>
         <source>A♭ 0</source>
-        <translation>La♭ -2</translation>
+        <translation>La♭ 0</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="1200"/>
         <source>A 0</source>
-        <translation>La -2</translation>
+        <translation>La 0</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="1208"/>
         <source>B♭ 0</source>
-        <translation>Si♭ -2</translation>
+        <translation>Si♭ 0</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="1216"/>
         <source>B 0</source>
-        <translation>Si -2</translation>
+        <translation>Si 0</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="1232"/>
         <source>C -1</source>
-        <translation>Do -3</translation>
+        <translation>Do -1</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="1246"/>
         <source>C♯ -1</source>
-        <translation>Do♯ -3</translation>
+        <translation>Do♯ -1</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="1254"/>
         <source>D -1</source>
-        <translation>Ré -3</translation>
+        <translation>Ré -1</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="1262"/>
         <source>E♭ -1</source>
-        <translation>Mi♭ -3</translation>
+        <translation>Mi♭ -1</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="1270"/>
         <source>E -1</source>
-        <translation>Mi -3</translation>
+        <translation>Mi -1</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="1278"/>
         <source>F -1</source>
-        <translation>Fa -3</translation>
+        <translation>Fa -1</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="1286"/>
         <source>F♯ -1</source>
-        <translation>Fa♯ -3</translation>
+        <translation>Fa♯ -1</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="1294"/>
         <source>G -1</source>
-        <translation>Sol -3</translation>
+        <translation>Sol -1</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="1302"/>
         <source>A♭ -1</source>
-        <translation>La♭ -3</translation>
+        <translation>La♭ -1</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="1310"/>
         <source>A -1</source>
-        <translation>La -3</translation>
+        <translation>La -1</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="1318"/>
         <source>B♭ -1</source>
-        <translation>Si♭ -3</translation>
+        <translation>Si♭ -1</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editpitch.ui" line="1326"/>
         <source>B -1</source>
-        <translation>Si -3</translation>
+        <translation>Si -1</translation>
     </message>
 </context>
 <context>
@@ -6263,7 +6263,7 @@ Par défaut, elles seront placées à droite et au même niveau. Cochez cette ca
     <message>
         <location filename="../../src/project/internal/projectuiactions.cpp" line="47"/>
         <source>&amp;Close</source>
-        <translation>&amp;Fermer</translation>
+        <translation>Fer&amp;mer</translation>
     </message>
     <message>
         <location filename="../../src/project/internal/projectuiactions.cpp" line="48"/>
@@ -6273,7 +6273,7 @@ Par défaut, elles seront placées à droite et au même niveau. Cochez cette ca
     <message>
         <location filename="../../src/project/internal/projectuiactions.cpp" line="53"/>
         <source>&amp;Save</source>
-        <translation>Enregistrer</translation>
+        <translation>Enregi&amp;strer</translation>
     </message>
     <message>
         <location filename="../../src/project/internal/projectuiactions.cpp" line="54"/>
@@ -6283,7 +6283,7 @@ Par défaut, elles seront placées à droite et au même niveau. Cochez cette ca
     <message>
         <location filename="../../src/project/internal/projectuiactions.cpp" line="60"/>
         <source>Save &amp;as…</source>
-        <translation>Enregistrer sous…</translation>
+        <translation>Enre&amp;gistrer sous…</translation>
     </message>
     <message>
         <location filename="../../src/project/internal/projectuiactions.cpp" line="61"/>
@@ -6293,7 +6293,7 @@ Par défaut, elles seront placées à droite et au même niveau. Cochez cette ca
     <message>
         <location filename="../../src/project/internal/projectuiactions.cpp" line="66"/>
         <source>Save a cop&amp;y…</source>
-        <translation>Enregistrer une copie…</translation>
+        <translation>Enregis&amp;trer une copie…</translation>
     </message>
     <message>
         <location filename="../../src/project/internal/projectuiactions.cpp" line="67"/>
@@ -6303,7 +6303,7 @@ Par défaut, elles seront placées à droite et au même niveau. Cochez cette ca
     <message>
         <location filename="../../src/project/internal/projectuiactions.cpp" line="72"/>
         <source>Save se&amp;lection…</source>
-        <translation>Enregistrer la sélection…</translation>
+        <translation>Enregistrer la sé&amp;lection…</translation>
     </message>
     <message>
         <location filename="../../src/project/internal/projectuiactions.cpp" line="73"/>
@@ -6313,7 +6313,7 @@ Par défaut, elles seront placées à droite et au même niveau. Cochez cette ca
     <message>
         <location filename="../../src/project/internal/projectuiactions.cpp" line="78"/>
         <source>Save to clo&amp;ud…</source>
-        <translation>Enregistrer dans le cloud…</translation>
+        <translation>Enregistrer dans le clo&amp;ud…</translation>
     </message>
     <message>
         <location filename="../../src/project/internal/projectuiactions.cpp" line="79"/>
@@ -6323,7 +6323,7 @@ Par défaut, elles seront placées à droite et au même niveau. Cochez cette ca
     <message>
         <location filename="../../src/project/internal/projectuiactions.cpp" line="85"/>
         <source>Pu&amp;blish to MuseScore.com…</source>
-        <translation>Publier sur MuseScore.com…</translation>
+        <translation>Pu&amp;blier sur MuseScore.com…</translation>
     </message>
     <message>
         <location filename="../../src/project/internal/projectuiactions.cpp" line="86"/>
@@ -6349,7 +6349,7 @@ Par défaut, elles seront placées à droite et au même niveau. Cochez cette ca
     <message>
         <location filename="../../src/project/internal/projectuiactions.cpp" line="106"/>
         <source>Import P&amp;DF…</source>
-        <translation>Importer un PDF…</translation>
+        <translation>Importer un P&amp;DF…</translation>
     </message>
     <message>
         <location filename="../../src/project/internal/projectuiactions.cpp" line="107"/>
@@ -6359,7 +6359,7 @@ Par défaut, elles seront placées à droite et au même niveau. Cochez cette ca
     <message>
         <location filename="../../src/project/internal/projectuiactions.cpp" line="113"/>
         <source>Project propert&amp;ies…</source>
-        <translation>Propriétés de la partition…</translation>
+        <translation>Propriétés de la p&amp;artition…</translation>
     </message>
     <message>
         <location filename="../../src/project/internal/projectuiactions.cpp" line="114"/>
@@ -6369,7 +6369,7 @@ Par défaut, elles seront placées à droite et au même niveau. Cochez cette ca
     <message>
         <location filename="../../src/project/internal/projectuiactions.cpp" line="119"/>
         <source>&amp;Print…</source>
-        <translation>Imprimer…</translation>
+        <translation>Im&amp;primer…</translation>
     </message>
     <message>
         <location filename="../../src/project/internal/projectuiactions.cpp" line="126"/>
@@ -6559,7 +6559,7 @@ Par défaut, elles seront placées à droite et au même niveau. Cochez cette ca
     <message>
         <location filename="../../src/notation/internal/notationuiactions.cpp" line="291"/>
         <source>Cu&amp;t</source>
-        <translation>Couper</translation>
+        <translation>Co&amp;uper</translation>
     </message>
     <message>
         <location filename="../../src/notation/internal/notationuiactions.cpp" line="298"/>
@@ -6569,22 +6569,22 @@ Par défaut, elles seront placées à droite et au même niveau. Cochez cette ca
     <message>
         <location filename="../../src/notation/internal/notationuiactions.cpp" line="305"/>
         <source>Past&amp;e</source>
-        <translation>Coller</translation>
+        <translation>Coll&amp;er</translation>
     </message>
     <message>
         <location filename="../../src/notation/internal/notationuiactions.cpp" line="312"/>
         <source>Paste &amp;half duration</source>
-        <translation>Collage demi durée</translation>
+        <translation>Collage dem&amp;i durée</translation>
     </message>
     <message>
         <location filename="../../src/notation/internal/notationuiactions.cpp" line="318"/>
         <source>Paste &amp;double duration</source>
-        <translation>Collage double durée</translation>
+        <translation>Collage &amp;double durée</translation>
     </message>
     <message>
         <location filename="../../src/notation/internal/notationuiactions.cpp" line="330"/>
         <source>&amp;Swap with clipboard</source>
-        <translation>Échanger avec le presse-papier</translation>
+        <translation>&amp;Échanger avec le presse-papier</translation>
     </message>
     <message>
         <location filename="../../src/notation/internal/notationuiactions.cpp" line="336"/>
@@ -6595,12 +6595,12 @@ Par défaut, elles seront placées à droite et au même niveau. Cochez cette ca
     <message>
         <location filename="../../src/notation/internal/notationuiactions.cpp" line="342"/>
         <source>Select &amp;all</source>
-        <translation>Tout sélectionner</translation>
+        <translation>&amp;Tout sélectionner</translation>
     </message>
     <message>
         <location filename="../../src/notation/internal/notationuiactions.cpp" line="348"/>
         <source>Select sectio&amp;n</source>
-        <translation>Sélectionner une section </translation>
+        <translation>Sélectionner une sectio&amp;n </translation>
     </message>
     <message>
         <location filename="../../src/notation/internal/notationuiactions.cpp" line="354"/>
@@ -6711,18 +6711,18 @@ Par défaut, elles seront placées à droite et au même niveau. Cochez cette ca
         <location filename="../../src/notation/internal/notationuiactions.cpp" line="778"/>
         <location filename="../../src/notation/internal/notationuiactions.cpp" line="779"/>
         <source>Break beam left</source>
-        <translation>Interrompre la ligature gauche</translation>
+        <translation>Interrompre la ligature à gauche de la note</translation>
     </message>
     <message>
         <location filename="../../src/notation/internal/notationuiactions.cpp" line="785"/>
         <source>Break inner beams (8th)</source>
-        <translation>Interrompre les ligatures intérieures (croches)</translation>
+        <translation>Interrompre les ligatures à gauche et / ou à droite (Croches)</translation>
     </message>
     <message>
         <location filename="../../src/notation/internal/notationuiactions.cpp" line="792"/>
         <location filename="../../src/notation/internal/notationuiactions.cpp" line="793"/>
         <source>Break inner beams (16th)</source>
-        <translation>Interrompre les ligatures intérieures (double-croches)</translation>
+        <translation>Interrompre les ligatures à gauche et / ou à droite (Doubles-croches)</translation>
     </message>
     <message>
         <location filename="../../src/notation/internal/notationuiactions.cpp" line="799"/>
@@ -6733,12 +6733,12 @@ Par défaut, elles seront placées à droite et au même niveau. Cochez cette ca
     <message>
         <location filename="../../src/notation/internal/notationuiactions.cpp" line="806"/>
         <source>Feathered beam, decelerate</source>
-        <translation>Ligature en ralentissant</translation>
+        <translation>Ligature progressive, ralentir</translation>
     </message>
     <message>
         <location filename="../../src/notation/internal/notationuiactions.cpp" line="813"/>
         <source>Feathered beam, accelerate</source>
-        <translation>Ligature en accélérant</translation>
+        <translation>Ligature progressive, accélérer</translation>
     </message>
     <message>
         <location filename="../../src/notation/internal/notationuiactions.cpp" line="827"/>
@@ -7386,7 +7386,7 @@ Par défaut, elles seront placées à droite et au même niveau. Cochez cette ca
     <message>
         <location filename="../../src/notation/internal/notationuiactions.cpp" line="516"/>
         <source>&amp;Find / Go to</source>
-        <translation>Rechercher / Aller à</translation>
+        <translation>&amp;Rechercher / Aller à</translation>
     </message>
     <message>
         <location filename="../../src/notation/internal/notationuiactions.cpp" line="517"/>
@@ -7505,12 +7505,12 @@ Par défaut, elles seront placées à droite et au même niveau. Cochez cette ca
     <message>
         <location filename="../../src/notation/internal/notationuiactions.cpp" line="786"/>
         <source>Break inner beams (eighth)</source>
-        <translation>Interrompre les ligatures intérieures (croches)</translation>
+        <translation>Interrompre les ligatures à gauche et / ou à droite (Croches)</translation>
     </message>
     <message>
         <location filename="../../src/notation/internal/notationuiactions.cpp" line="807"/>
         <source>Add feathered beam: decelerate</source>
-        <translation>Ajouter une ligature progressive : Décélérer</translation>
+        <translation>Ajouter une ligature progressive : Ralentir</translation>
     </message>
     <message>
         <location filename="../../src/notation/internal/notationuiactions.cpp" line="814"/>
@@ -8632,7 +8632,7 @@ Par défaut, elles seront placées à droite et au même niveau. Cochez cette ca
         <location filename="../../src/notation/internal/notationuiactions.cpp" line="771"/>
         <location filename="../../src/notation/internal/notationuiactions.cpp" line="772"/>
         <source>No beam</source>
-        <translation>Note seule</translation>
+        <translation>Note seule sans ligature</translation>
     </message>
     <message>
         <location filename="../../src/notation/internal/notationuiactions.cpp" line="764"/>
@@ -9083,7 +9083,7 @@ Par défaut, elles seront placées à droite et au même niveau. Cochez cette ca
     <message>
         <location filename="../../src/notation/internal/notationuiactions.cpp" line="378"/>
         <source>De&amp;lete</source>
-        <translation>Supprimer</translation>
+        <translation>&amp;Supprimer</translation>
     </message>
     <message>
         <location filename="../../src/notation/internal/notationuiactions.cpp" line="106"/>
@@ -9313,12 +9313,12 @@ Par défaut, elles seront placées à droite et au même niveau. Cochez cette ca
     <message>
         <location filename="../../src/notation/internal/notationuiactions.cpp" line="931"/>
         <source>Octave &amp;below</source>
-        <translation>Octave en dessous</translation>
+        <translation>Octave en-dessous</translation>
     </message>
     <message>
         <location filename="../../src/notation/internal/notationuiactions.cpp" line="937"/>
         <source>Ninth belo&amp;w</source>
-        <translation>Neuvième en dessous</translation>
+        <translation>Neuvième en-dessous</translation>
     </message>
     <message>
         <location filename="../../src/notation/internal/notationuiactions.cpp" line="1164"/>
@@ -10326,7 +10326,7 @@ Publié sous licence &lt;a href=&quot;%1&quot;&gt;GNU General Public License. ve
     <message>
         <location filename="../../src/appshell/view/appmenumodel.cpp" line="227"/>
         <source>&amp;Add</source>
-        <translation>&amp;Ajouter</translation>
+        <translation>A&amp;jouter</translation>
     </message>
 </context>
 <context>
@@ -10359,7 +10359,7 @@ Publié sous licence &lt;a href=&quot;%1&quot;&gt;GNU General Public License. ve
     <message>
         <location filename="../../src/appshell/view/appmenumodel.cpp" line="395"/>
         <source>&amp;Diagnostic</source>
-        <translation>&amp;Diagnostic</translation>
+        <translation>Dia&amp;gnostic</translation>
     </message>
 </context>
 <context>
@@ -10375,7 +10375,7 @@ Publié sous licence &lt;a href=&quot;%1&quot;&gt;GNU General Public License. ve
     <message>
         <location filename="../../src/appshell/view/appmenumodel.cpp" line="137"/>
         <source>Open &amp;recent</source>
-        <translation>Partitions récentes</translation>
+        <translation>Partitions &amp;récentes</translation>
     </message>
     <message>
         <location filename="../../src/appshell/view/appmenumodel.cpp" line="158"/>
@@ -10393,7 +10393,7 @@ Publié sous licence &lt;a href=&quot;%1&quot;&gt;GNU General Public License. ve
     <message>
         <location filename="../../src/appshell/view/appmenumodel.cpp" line="254"/>
         <source>F&amp;ormat</source>
-        <translation>Format</translation>
+        <translation>F&amp;ormat</translation>
     </message>
 </context>
 <context>
@@ -10401,7 +10401,7 @@ Publié sous licence &lt;a href=&quot;%1&quot;&gt;GNU General Public License. ve
     <message>
         <location filename="../../src/appshell/view/appmenumodel.cpp" line="343"/>
         <source>&amp;Help</source>
-        <translation>Aide</translation>
+        <translation>Ai&amp;de</translation>
     </message>
 </context>
 <context>
@@ -10427,7 +10427,7 @@ Publié sous licence &lt;a href=&quot;%1&quot;&gt;GNU General Public License. ve
     <message>
         <location filename="../../src/appshell/view/appmenumodel.cpp" line="298"/>
         <source>&amp;Tools</source>
-        <translation>Outils</translation>
+        <translation>Ou&amp;tils</translation>
     </message>
 </context>
 <context>
@@ -19317,7 +19317,7 @@ l&apos;anacrouse</translation>
     <message>
         <location filename="../../src/inspector/view/qml/MuseScore/Inspector/notation/notes/BeamSettings.qml" line="87"/>
         <source>Feathered beams</source>
-        <translation>Ligature avec changement de tempo</translation>
+        <translation>Ligature progressive</translation>
     </message>
     <message>
         <location filename="../../src/inspector/view/qml/MuseScore/Inspector/notation/notes/BeamSettings.qml" line="102"/>
@@ -19332,12 +19332,12 @@ l&apos;anacrouse</translation>
     <message>
         <location filename="../../src/inspector/view/qml/MuseScore/Inspector/notation/notes/BeamSettings.qml" line="136"/>
         <source>Feathering left</source>
-        <translation>Ligature avec changement de tempo à gauche</translation>
+        <translation>Progress. à gauche</translation>
     </message>
     <message>
         <location filename="../../src/inspector/view/qml/MuseScore/Inspector/notation/notes/BeamSettings.qml" line="156"/>
         <source>Feathering right</source>
-        <translation>Ligature avec changement de tempo à droite</translation>
+        <translation>Progress. à droite</translation>
     </message>
     <message>
         <location filename="../../src/inspector/view/qml/MuseScore/Inspector/notation/notes/BeamSettings.qml" line="182"/>
@@ -19397,22 +19397,22 @@ l&apos;anacrouse</translation>
     <message>
         <location filename="../../src/inspector/view/qml/MuseScore/Inspector/notation/beams/BeamTypeSelector.qml" line="61"/>
         <source>No beam</source>
-        <translation>Note seule</translation>
+        <translation>Note seule sans ligature</translation>
     </message>
     <message>
         <location filename="../../src/inspector/view/qml/MuseScore/Inspector/notation/beams/BeamTypeSelector.qml" line="62"/>
         <source>Break beam left</source>
-        <translation>Interrompre la ligature gauche</translation>
+        <translation>Interrompre la ligature à gauche de la note</translation>
     </message>
     <message>
         <location filename="../../src/inspector/view/qml/MuseScore/Inspector/notation/beams/BeamTypeSelector.qml" line="63"/>
         <source>Break inner beams (8th)</source>
-        <translation>Interrompre les ligatures intérieures (croches)</translation>
+        <translation>Interrompre les ligatures à gauche et / ou à droite (Croches)</translation>
     </message>
     <message>
         <location filename="../../src/inspector/view/qml/MuseScore/Inspector/notation/beams/BeamTypeSelector.qml" line="64"/>
         <source>Break inner beams (16th)</source>
-        <translation>Interrompre les ligatures intérieures (double-croches)</translation>
+        <translation>Interrompre les ligatures à gauche et / ou à droite (Doubles-croches)</translation>
     </message>
     <message>
         <location filename="../../src/inspector/view/qml/MuseScore/Inspector/notation/beams/BeamTypeSelector.qml" line="65"/>
@@ -19480,12 +19480,12 @@ l&apos;anacrouse</translation>
     <message>
         <location filename="../../src/inspector/view/qml/MuseScore/Inspector/notation/notes/StemSettings.qml" line="193"/>
         <source>Stem offset</source>
-        <translation>Décalage hampe</translation>
+        <translation>Décalage de la hampe</translation>
     </message>
     <message>
         <location filename="../../src/inspector/view/qml/MuseScore/Inspector/notation/notes/StemSettings.qml" line="202"/>
         <source>Flag offset</source>
-        <translation>Décalage de la hampe</translation>
+        <translation>Décalage du crochet</translation>
     </message>
     <message>
         <location filename="../../src/inspector/view/qml/MuseScore/Inspector/notation/sectionbreaks/SectionBreakSettings.qml" line="48"/>
@@ -26925,7 +26925,7 @@ a échoué.</translation>
     <message>
         <location filename="../../src/project/qml/MuseScore/Project/internal/Migration/MigrationContentFor362.qml" line="93"/>
         <source>Please note that the appearance of your score will change due to improvements we have made to default settings for beaming, ties, slurs, system objects and horizontal spacing.</source>
-        <translation>Veuillez noter que l&apos;apparence de votre partition changera en raison des améliorations que nous avons apportées aux paramètres par défaut de la ligature, les liaisons de prolongation, les liaisons de phrasé, les objets système et l&apos;espacement horizontal.</translation>
+        <translation>Veuillez noter que l&apos;apparence de votre partition changera en raison des améliorations que nous avons apportées aux paramètres par défaut des ligatures, des liaisons de prolongation, des liaisons de phrasé, des objets système et d&apos;espacement horizontal.</translation>
     </message>
     <message>
         <location filename="../../src/project/qml/MuseScore/Project/internal/Migration/MigrationContentFor362.qml" line="116"/>

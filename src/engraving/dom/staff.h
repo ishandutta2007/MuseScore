@@ -154,6 +154,7 @@ public:
     void setBarLineFrom(int val) { m_barLineFrom = val; }
     void setBarLineTo(int val) { m_barLineTo = val; }
     double staffHeight() const;
+    double staffHeight(const Fraction& tick) const;
 
     int channel(const Fraction&, voice_idx_t voice) const;
 
@@ -295,7 +296,7 @@ private:
     bool m_mergeMatchingRests = false;      // merge matching rests in multiple voices
     HideMode m_hideWhenEmpty = HideMode::AUTO;      // hide empty staves
 
-    Color m_color   { engravingConfiguration()->defaultColor() };
+    Color m_color;
     Millimetre m_userDist     { Millimetre(0.0) };           ///< user edited extra distance
 
     StaffTypeList m_staffTypeList;

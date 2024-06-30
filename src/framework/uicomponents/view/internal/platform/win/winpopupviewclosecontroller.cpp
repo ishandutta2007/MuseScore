@@ -26,8 +26,8 @@
 
 using namespace muse::uicomponents;
 
-WinPopupViewCloseController::WinPopupViewCloseController(QObject* parent)
-    : PopupViewCloseController(parent)
+WinPopupViewCloseController::WinPopupViewCloseController(const muse::modularity::ContextPtr& iocCtx, QObject* parent)
+    : PopupViewCloseController(iocCtx, parent)
 {
 }
 
@@ -42,11 +42,7 @@ void WinPopupViewCloseController::doUpdateEventFilters()
     PopupViewCloseController::doUpdateEventFilters();
 }
 
-#ifdef MU_QT5_COMPAT
-bool WinPopupViewCloseController::nativeEventFilter(const QByteArray& eventType, void* message, long*)
-#else
 bool WinPopupViewCloseController::nativeEventFilter(const QByteArray& eventType, void* message, qintptr*)
-#endif
 {
     if (eventType != "windows_generic_MSG") {
         return false;

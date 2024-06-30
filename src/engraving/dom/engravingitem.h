@@ -157,10 +157,6 @@ class EngravingItem : public EngravingObject
     M_PROPERTY2(bool, excludeFromOtherParts, setExcludeFromOtherParts, false)
 
 public:
-    INJECT_STATIC(IEngravingConfiguration, engravingConfiguration)
-    INJECT_STATIC(rendering::IScoreRenderer, renderer)
-
-public:
 
     virtual ~EngravingItem();
 
@@ -173,6 +169,10 @@ public:
 
     EngravingItem* parentItem(bool explicitParent = true) const;
     EngravingItemList childrenItems(bool all = false) const;
+
+    const muse::modularity::ContextPtr& iocContext() const;
+    const std::shared_ptr<IEngravingConfiguration>& configuration() const;
+    const std::shared_ptr<rendering::IScoreRenderer>& renderer() const;
 
     EngravingItem* findAncestor(ElementType t);
     const EngravingItem* findAncestor(ElementType t) const;
@@ -268,12 +268,7 @@ public:
 
     virtual int subtype() const { return -1; }                    // for select gui
 
-    void drawAt(muse::draw::Painter* p, const PointF& pt) const
-    {
-        p->translate(pt);
-        renderer()->drawItem(this, p);
-        p->translate(-pt);
-    }
+    void drawAt(muse::draw::Painter* p, const PointF& pt) const;
 
 //       virtual ElementGroup getElementGroup() { return SingleElementGroup(this); }
     virtual std::unique_ptr<ElementGroup> getDragGroup(std::function<bool(const EngravingItem*)> /*isDragged*/)
@@ -573,12 +568,33 @@ public:
 
         void setWidth(double v)
         {
+#ifndef NDEBUG
+            setWidthDebugHook(v);
+#endif
             RectF r = bbox();
             r.setWidth(v);
             setBbox(r);
         }
 
         OffsetChange offsetChanged() const { return autoplace.offsetChanged; }
+
+        void connectItemSnappedBefore(EngravingItem* itemBefore);
+        void disconnectItemSnappedBefore();
+        void connectItemSnappedAfter(EngravingItem* itemAfter);
+        void disconnectItemSnappedAfter();
+        EngravingItem* itemSnappedBefore() const { return m_itemSnappedBefore; }
+        EngravingItem* itemSnappedAfter() const { return m_itemSnappedAfter; }
+
+        struct StaffCenteringInfo {
+            double availableVertSpaceAbove = 0.0;
+            double availableVertSpaceBelow = 0.0;
+        };
+        const StaffCenteringInfo& staffCenteringInfo() const { return m_staffCenteringInfo; }
+        void setStaffCenteringInfo(double availSpaceAbove, double availSpaceBelow)
+        {
+            m_staffCenteringInfo.availableVertSpaceAbove = availSpaceAbove;
+            m_staffCenteringInfo.availableVertSpaceBelow = availSpaceBelow;
+        }
 
         void dump(std::stringstream& ss) const;
 
@@ -588,6 +604,7 @@ public:
 
 #ifndef NDEBUG
         void doSetPosDebugHook(double x, double y);
+        void setWidthDebugHook(double w);
 #endif
 
         inline void doSetPos(double x, double y)
@@ -609,6 +626,11 @@ public:
         double m_mag = 1.0;                     // standard magnification (derived value)
         ld_field<PointF> m_pos = "pos";         // Reference position, relative to _parent, set by autoplace
         ld_field<Shape> m_shape = "shape";
+
+        EngravingItem* m_itemSnappedBefore = nullptr;
+        EngravingItem* m_itemSnappedAfter = nullptr;
+
+        StaffCenteringInfo m_staffCenteringInfo;
     };
 
     const LayoutData* ldata() const;
@@ -621,6 +643,9 @@ public:
     RectF abbox(LD_ACCESS mode = LD_ACCESS::CHECK) const { return ldata()->bbox(mode).translated(pagePos()); }
     RectF pageBoundingRect(LD_ACCESS mode = LD_ACCESS::CHECK) const { return ldata()->bbox(mode).translated(pagePos()); }
     RectF canvasBoundingRect(LD_ACCESS mode = LD_ACCESS::CHECK) const { return ldata()->bbox(mode).translated(canvasPos()); }
+
+    PointF staffOffset() const;
+    double staffOffsetY() const { return staffOffset().y(); }
 
     virtual bool isPropertyLinkedToMaster(Pid id) const;
     virtual bool isUnlinkedFromMaster() const;
@@ -648,6 +673,12 @@ public:
     virtual void move(const PointF& s) { mutldata()->move(s); }
 
     virtual bool allowTimeAnchor() const { return false; }
+
+    virtual bool hasVoiceApplicationProperties() const { return false; }
+    bool appliesToAllVoicesInInstrument() const;
+    void setInitialTrackAndVoiceApplication(track_idx_t track);
+    void checkVoiceApplicationCompatibleWithTrack();
+    void setPlacementBasedOnVoiceApplication(DirectionV styledDirection);
 
     void setOffsetChanged(bool val, bool absolute = true, const PointF& diff = PointF());
     //! ---------------------

@@ -27,8 +27,10 @@
 
 #include "importmxmlpass1.h"
 #include "importxmlfirstpass.h"
+#include "internal/musicxml/musicxmlsupport.h"
 #include "musicxml.h" // a.o. for Slur
 
+#include "engraving/dom/instrument.h"
 #include "engraving/dom/types.h"
 
 namespace mu::engraving {
@@ -219,6 +221,7 @@ class Trill;
 class MxmlLogger;
 class MusicXMLDelayedDirectionElement;
 class MusicXMLInferredFingering;
+class MusicXMLParserPass2;
 
 using DelayedDirectionsList = std::vector<MusicXMLDelayedDirectionElement*>;
 using InferredFingeringsList = std::vector<MusicXMLInferredFingering*>;
@@ -228,10 +231,12 @@ using BracketsStack = std::array<MusicXmlExtendedSpannerDesc, MAX_NUMBER_LEVEL>;
 using OttavasStack = std::array<MusicXmlExtendedSpannerDesc, MAX_NUMBER_LEVEL>;
 using HairpinsStack = std::array<MusicXmlExtendedSpannerDesc, MAX_NUMBER_LEVEL>;
 using InferredHairpinsStack = std::vector<Hairpin*>;
+using InferredTempoLineStack = std::vector<GradualTempoChange*>;
 using SpannerStack = std::array<MusicXmlExtendedSpannerDesc, MAX_NUMBER_LEVEL>;
 using SpannerSet = std::set<Spanner*>;
 using DelayedArpMap = std::map<int, DelayedArpeggio>;
 using SegnoStack = std::map<int, Marker*>;
+using SystemElements = std::multimap<int, EngravingItem*>;
 
 //---------------------------------------------------------
 //   MusicXMLParserNotations
@@ -240,7 +245,8 @@ using SegnoStack = std::map<int, Marker*>;
 class MusicXMLParserNotations
 {
 public:
-    MusicXMLParserNotations(muse::XmlStreamReader& e, Score* score, MxmlLogger* logger, MusicXMLParserPass1& pass1);
+    MusicXMLParserNotations(muse::XmlStreamReader& e, Score* score, MxmlLogger* logger, MusicXMLParserPass1& pass1,
+                            MusicXMLParserPass2& pass2);
     void parse();
     void addToScore(ChordRest* const cr, Note* const note, const int tick, SlurStack& slurs, Glissando* glissandi[MAX_NUMBER_LEVEL][2],
                     MusicXmlSpannerMap& spanners, TrillStack& trills, std::map<int, Tie*>& ties, ArpeggioMap& arpMap,
@@ -273,6 +279,7 @@ private:
     void otherNotation();
     muse::XmlStreamReader& m_e;
     MusicXMLParserPass1& m_pass1;
+    MusicXMLParserPass2& m_pass2;
     Score* m_score = nullptr;                         // the score
     MxmlLogger* m_logger = nullptr;                              // the error logger
     String m_errors;                    // errors to present to the user
@@ -315,8 +322,20 @@ public:
     SLine* delayedOttava() { return m_delayedOttava; }
     void setDelayedOttava(SLine* ottava) { m_delayedOttava = ottava; }
 
-    void addInferredHairpin(Hairpin* hp);
-    InferredHairpinsStack getInferredHairpins();
+    void addInferredHairpin(Hairpin* hp) { m_inferredHairpins.push_back(hp); }
+    const InferredHairpinsStack& getInferredHairpins() { return m_inferredHairpins; }
+
+    void addInferredTempoLine(GradualTempoChange* hp) { m_inferredTempoLines.push_back(hp); }
+    const InferredTempoLineStack& getInferredTempoLine() { return m_inferredTempoLines; }
+
+    void addSystemElement(EngravingItem* el, const Fraction& tick) { m_sysElements.insert({ tick.ticks(), el }); }
+    const SystemElements systemElements() const { return m_sysElements; }
+
+    InferredPercInstr inferredPercInstr(const Fraction& tick, const track_idx_t trackIdx);
+    void addInferredPercInstr(InferredPercInstr instr)
+    {
+        m_inferredPerc.push_back(instr);
+    }
 
 private:
     void addError(const String& error);      // Add an error to be shown in the GUI
@@ -363,6 +382,9 @@ private:
     void setMultiMeasureRestCount(int count);
     int getAndDecMultiMeasureRestCount();
 
+    void xmlSetDrumsetPitch(Note* note, const Chord* chord, const Staff* staff, int step, int octave, NoteHeadGroup headGroup,
+                            DirectionV& stemDir, Instrument* instrument);
+
     // generic pass 2 data
 
     muse::XmlStreamReader m_e;
@@ -385,6 +407,7 @@ private:
     OttavasStack m_ottavas;                // Current ottavas
     HairpinsStack m_hairpins;              // Current hairpins
     InferredHairpinsStack m_inferredHairpins;
+    InferredTempoLineStack m_inferredTempoLines;
     MusicXmlExtendedSpannerDesc m_dummyNewMusicXmlSpannerDesc;
 
     Glissando* m_glissandi[MAX_NUMBER_LEVEL][2];     // Current slides ([0]) / glissandi ([1])
@@ -412,6 +435,9 @@ private:
     size_t m_nstaves = 0;                          // Number of staves in current part
     std::vector<int> m_measureRepeatNumMeasures;
     std::vector<int> m_measureRepeatCount;
+
+    SystemElements m_sysElements;
+    InferredPercList m_inferredPerc;
 };
 
 //---------------------------------------------------------
@@ -442,27 +468,35 @@ private:
     void sound();
     void dynamics();
     void otherDirection();
-    void handleRepeats(Measure* measure, const track_idx_t track, const Fraction tick, bool& measureHasCoda, SegnoStack& segnos,
+    void handleRepeats(Measure* measure, const Fraction tick, bool& measureHasCoda, SegnoStack& segnos,
                        DelayedDirectionsList& delayedDirections);
     Marker* findMarker(const String& repeat) const;
     Jump* findJump(const String& repeat) const;
-    void handleNmiCmi(Measure* measure, const track_idx_t track, const Fraction tick, DelayedDirectionsList& delayedDirections);
-    void handleChordSym(const track_idx_t track, const Fraction tick, HarmonyMap& harmonyMap);
+    void handleNmiCmi(Measure* measure, const Fraction& tick, DelayedDirectionsList& delayedDirections);
+    void handleChordSym(const Fraction& tick, HarmonyMap& harmonyMap);
     void handleTempo();
     String matchRepeat(const String& plainWords) const;
     void skipLogCurrElem();
     bool isLikelyCredit(const Fraction& tick) const;
     void textToDynamic(String& text);
     void textToCrescLine(String& text);
-    void addInferredCrescLine(const track_idx_t track, const Fraction& tick, const bool isVocalStaff);
+    void addInferredHairpin(const Fraction& tick, const bool isVocalStaff);
+    void addInferredTempoLine(const Fraction& tick);
     bool isLyricBracket() const;
     bool isLikelySubtitle(const Fraction& tick) const;
     bool isLikelyLegallyDownloaded(const Fraction& tick) const;
     bool isLikelyTempoText(const track_idx_t track) const;
+    void handleFraction();
+    bool isLikelyTempoLine(const track_idx_t track) const;
     Text* addTextToHeader(const TextStyleType textStyleType);
     void hideRedundantHeaderText(const Text* inferredText, const std::vector<String> metaTags);
-    bool isLikelyFingering() const;
+    bool isLikelyFingering(const String& fingeringStr) const;
     bool isLikelySticking();
+    bool isLikelyDynamicRange() const;
+    PlayingTechniqueType getPlayingTechnique() const;
+    void handleDrumInstrument(bool isPerc, Fraction tick) const;
+
+    // void terminateInferredLine(const std::vector<TextLineBase*> lines, const Fraction& tick);
 
     bool hasTotalY() const { return m_hasRelativeY || m_hasDefaultY; }
 
@@ -474,6 +508,7 @@ private:
 
     Color m_color;
     Hairpin* m_inferredHairpinStart = nullptr;
+    GradualTempoChange* m_inferredTempoLineStart = nullptr;
     StringList m_dynamicsList;
     String m_enclosure;
     String m_wordsText;
@@ -501,6 +536,7 @@ private:
     bool m_systemDirection = false;
     std::vector<EngravingItem*> m_elems;
     Fraction m_offset;
+    track_idx_t m_track;
 };
 
 //---------------------------------------------------------
@@ -518,7 +554,7 @@ public:
                                     String placement, Measure* measure, Fraction tick)
         : m_totalY(totalY),  m_element(element), m_track(track), m_placement(placement),
         m_measure(measure), m_tick(tick) {}
-    void addElem();
+    void addElem(MusicXMLParserPass2& _pass2);
     double totalY() const { return m_totalY; }
     const EngravingItem* element() const { return m_element; }
     track_idx_t track() const { return m_track; }

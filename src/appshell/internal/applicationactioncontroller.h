@@ -24,8 +24,6 @@
 
 #include <QObject>
 
-#include "../iapplicationactioncontroller.h"
-
 #include "modularity/ioc.h"
 #include "actions/actionable.h"
 #include "actions/iactionsdispatcher.h"
@@ -40,10 +38,10 @@
 #include "audio/isoundfontrepository.h"
 #include "istartupscenario.h"
 #include "iapplication.h"
+#include "extensions/iextensioninstaller.h"
 
 namespace mu::appshell {
-class ApplicationActionController : public QObject, public IApplicationActionController, public muse::actions::Actionable,
-    public muse::async::Asyncable
+class ApplicationActionController : public QObject, public muse::actions::Actionable, public muse::async::Asyncable
 {
     muse::Inject<muse::actions::IActionsDispatcher> dispatcher;
     muse::Inject<muse::ui::IUiActionsRegister> actionsRegister;
@@ -56,6 +54,7 @@ class ApplicationActionController : public QObject, public IApplicationActionCon
     muse::Inject<muse::audio::ISoundFontRepository> soundFontRepository;
     muse::Inject<IStartupScenario> startupScenario;
     muse::Inject<muse::IApplication> application;
+    muse::Inject<muse::extensions::IExtensionInstaller> extensionInstaller;
 
 public:
     void preInit();
@@ -63,12 +62,21 @@ public:
 
     muse::ValCh<bool> isFullScreen() const;
 
-    void onDragEnterEvent(QDragEnterEvent* event) override;
-    void onDragMoveEvent(QDragMoveEvent* event) override;
-    void onDropEvent(QDropEvent* event) override;
-
 private:
+
+    enum DragTarget {
+        Unknown = 0,
+        ProjectFile,
+        SoundFont,
+        Extension
+    };
+
     bool eventFilter(QObject* watched, QEvent* event) override;
+
+    DragTarget dragTarget(const QUrl& url) const;
+    bool onDragEnterEvent(QDragEnterEvent* event);
+    bool onDragMoveEvent(QDragMoveEvent* event);
+    bool onDropEvent(QDropEvent* event);
 
     void setupConnections();
 

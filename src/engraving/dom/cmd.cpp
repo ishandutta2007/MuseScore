@@ -586,11 +586,6 @@ void Score::cmdAddSpanner(Spanner* spanner, const PointF& pos, bool systemStaves
         spanner->setTick2(tick2);
     } else {      // Anchor::MEASURE, Anchor::CHORD, Anchor::NOTE
         Measure* m = toMeasure(mb);
-        RectF b(m->canvasBoundingRect());
-
-        if (pos.x() >= (b.x() + b.width() * .5) && m != lastMeasureMM() && m->nextMeasure()->system() == m->system()) {
-            m = m->nextMeasure();
-        }
         spanner->setTick(m->tick());
         spanner->setTick2(m->endTick());
     }
@@ -625,61 +620,6 @@ void Score::cmdAddSpanner(Spanner* spanner, staff_idx_t staffIdx, Segment* start
     }
     spanner->setTick2(tick2);
     undoAddElement(spanner, true, ctrlModifier);
-}
-
-void Score::addHairpinToChordRest(Hairpin* hairpin, ChordRest* chordRest)
-{
-    track_idx_t track = chordRest->track();
-    hairpin->setTrack(track);
-    hairpin->setTrack2(track);
-
-    hairpin->setTick(chordRest->tick());
-
-    // End the hairpin at the end of the chord or, if present, at the next dynamic
-    Fraction endTick = chordRest->tick() + chordRest->actualTicks();
-
-    Segment* startSegment = chordRest->segment();
-    Segment* endSegment = nullptr;
-    for (Segment* segment = startSegment; segment && segment->tick() < endTick;
-         segment = segment->next1(SegmentType::ChordRest | SegmentType::TimeTick)) {
-        if (segment == startSegment) {
-            continue;
-        }
-        if (segment->findAnnotation(ElementType::DYNAMIC, track, track)) {
-            endSegment = segment;
-            break;
-        }
-    }
-    if (endSegment) {
-        endTick = std::min(endTick, endSegment->tick());
-    }
-
-    hairpin->setTick2(endTick);
-
-    undoAddElement(hairpin);
-}
-
-void Score::addHairpinToDynamic(Hairpin* hairpin, Dynamic* dynamic)
-{
-    track_idx_t track = dynamic->track();
-    hairpin->setTrack(track);
-    hairpin->setTrack2(track);
-
-    hairpin->setTick(dynamic->tick());
-
-    ChordRest* startCR = nullptr;
-    for (Segment* segment = dynamic->segment(); segment; segment = segment->prev(SegmentType::ChordRest)) {
-        EngravingItem* element = segment->elementAt(track);
-        if (element && element->isChordRest()) {
-            startCR = toChordRest(element);
-            break;
-        }
-    }
-
-    Fraction endTick = startCR ? startCR->tick() + startCR->actualTicks() : dynamic->segment()->measure()->endTick();
-    hairpin->setTick2(endTick);
-
-    undoAddElement(hairpin);
 }
 
 //---------------------------------------------------------
@@ -1478,7 +1418,6 @@ Fraction Score::makeGap(Segment* segment, track_idx_t track, const Fraction& _sd
         // chord symbols can exist without chord/rest so they should not be removed
         constexpr Sel filter = static_cast<Sel>(int(Sel::ALL) & ~int(Sel::CHORD_SYMBOL));
         deleteAnnotationsFromRange(s1, s2, track, track + 1, filter);
-        deleteSpannersFromRange(t1, t2, track, track + 1, filter);
     }
 
     return accumulated;
@@ -1520,7 +1459,7 @@ bool Score::makeGap1(const Fraction& baseTick, staff_idx_t staffIdx, const Fract
             // chord symbols can exist without chord/rest so they should not be removed
             constexpr Sel filter = static_cast<Sel>(int(Sel::ALL) & ~int(Sel::CHORD_SYMBOL));
             deleteAnnotationsFromRange(tick2rightSegment(tick), tick2rightSegment(endTick), track, track + 1, filter);
-            deleteSpannersFromRange(tick, endTick, track, track + 1, filter);
+            deleteOrShortenOutSpannersFromRange(tick, endTick, track, track + 1, filter);
         }
 
         seg = m->undoGetSegment(SegmentType::ChordRest, tick);
@@ -3553,8 +3492,8 @@ bool Score::makeMeasureRepeatGroup(Measure* firstMeasure, int numMeasures, staff
     }
 
     if (!empty) {
-        auto b = MessageBox::warning(muse::trc("engraving", "Current contents of measures will be replaced"),
-                                     muse::trc("engraving", "Continue with inserting measure repeat?"));
+        auto b = MessageBox(iocContext()).warning(muse::trc("engraving", "Current contents of measures will be replaced"),
+                                                  muse::trc("engraving", "Continue with inserting measure repeat?"));
         if (b == MessageBox::Button::Cancel) {
             return false;
         }

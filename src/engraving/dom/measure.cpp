@@ -1319,29 +1319,31 @@ bool Measure::acceptDrop(EditData& data) const
         return false;
     }
 
-    RectF staffR = system()->staff(staffIdx)->bbox().translated(system()->canvasPos());
-    staffR.intersect(canvasBoundingRect());
+    RectF staffRect = system()->staff(staffIdx)->bbox().translated(system()->canvasPos());
+    staffRect.intersect(canvasBoundingRect());
 
+    //! NOTE: Should match NotationInteraction::dragMeasureAnchorElement
     switch (e->type()) {
     case ElementType::MEASURE_LIST:
+    case ElementType::MEASURE_NUMBER:
     case ElementType::JUMP:
     case ElementType::MARKER:
     case ElementType::LAYOUT_BREAK:
     case ElementType::STAFF_LIST:
+        // Always drop to all staves
         viewer->setDropRectangle(canvasBoundingRect());
         return true;
 
+    case ElementType::VOLTA:
+    case ElementType::GRADUAL_TEMPO_CHANGE:
     case ElementType::KEYSIG:
     case ElementType::TIMESIG:
+        // Drop to all staves or single staff depending on modifier
         if (data.modifiers & ControlModifier) {
-            viewer->setDropRectangle(staffR);
+            viewer->setDropRectangle(staffRect);
         } else {
             viewer->setDropRectangle(canvasBoundingRect());
         }
-        return true;
-
-    case ElementType::MEASURE_NUMBER:
-        viewer->setDropRectangle(canvasBoundingRect());
         return true;
 
     case ElementType::BRACKET:
@@ -1353,7 +1355,8 @@ bool Measure::acceptDrop(EditData& data) const
     case ElementType::SYMBOL:
     case ElementType::CLEF:
     case ElementType::STAFFTYPE_CHANGE:
-        viewer->setDropRectangle(staffR);
+        // Always drop to single staff
+        viewer->setDropRectangle(staffRect);
         return true;
 
     case ElementType::STRING_TUNINGS: {
@@ -1361,7 +1364,7 @@ bool Measure::acceptDrop(EditData& data) const
             return false;
         }
 
-        viewer->setDropRectangle(staffR);
+        viewer->setDropRectangle(staffRect);
         return true;
     }
 
@@ -1375,7 +1378,7 @@ bool Measure::acceptDrop(EditData& data) const
             viewer->setDropRectangle(canvasBoundingRect());
             return true;
         case ActionIconType::STAFF_TYPE_CHANGE:
-            viewer->setDropRectangle(staffR);
+            viewer->setDropRectangle(staffRect);
             return true;
         default:
             break;
@@ -3090,7 +3093,7 @@ EngravingItem* Measure::prevElementStaff(staff_idx_t staff)
     if (prevM) {
         Segment* seg = prevM->last();
         if (seg) {
-            return seg->lastElement(staff);
+            return seg->lastElementForNavigation(staff);
         }
     }
     return score()->firstElement();
@@ -3111,36 +3114,26 @@ String Measure::accessibleInfo() const
 //       return minTick
 //---------------------------------------------------
 
-Fraction Measure::computeTicks()
+void Measure::computeTicks()
 {
-    Fraction minTick = ticks();
-    if (minTick <= Fraction(0, 1)) {
-        LOGD("=====minTick %d measure %p", minTick.ticks(), this);
+    for (Segment* segment = firstActive(); segment; segment = segment->nextActive()) {
+        Segment* nextSegment = segment->nextActive();
+        Fraction nextTick = nextSegment ? nextSegment->rtick() : ticks();
+        segment->setTicks(nextTick - segment->rtick());
     }
-    assert(minTick > Fraction(0, 1));
 
-    Segment* ns = first();
-    while (ns && !ns->enabled()) {
-        ns = ns->next();
-    }
-    while (ns) {
-        Segment* s = ns;
-        Segment* nextSeg = s->nextActive();
-        ns = nextSeg;
-        while (s->isChordRestType() && ns && ns->isTimeTickType()) {
-            // Ignore timeTick segments when computing duration of chordRest segments
-            ns = ns->nextActive();
-        }
-        Fraction nticks = (ns ? ns->rtick() : ticks()) - s->rtick();
-        if (nticks.isNotZero()) {
-            if (nticks < minTick) {
-                minTick = nticks;
+    for (Segment* segment = first(SegmentType::TimeTick); segment; segment = segment->next(SegmentType::TimeTick)) {
+        segment->setTicks(Fraction(0, 1));
+        Segment* nextSegment = segment->next();
+        while (nextSegment) {
+            Fraction tickDiff = nextSegment->rtick() - segment->rtick();
+            if (!tickDiff.isZero()) {
+                segment->setTicks(tickDiff);
+                break;
             }
+            nextSegment = nextSegment->next();
         }
-        s->setTicks(nticks);
-        ns = nextSeg;
     }
-    return minTick;
 }
 
 //---------------------------------------------------------
@@ -3396,8 +3389,11 @@ void Measure::respaceSegments()
     }
     // Start respacing segments
     for (Segment& s : m_segments) {
+        if (s.isTimeTickType()) {
+            continue;
+        }
         s.mutldata()->setPosX(x);
-        if (s.enabled() && s.visible() && !s.allElementsInvisible() && !s.isTimeTickType()) {
+        if (s.enabled() && s.visible() && !s.allElementsInvisible()) {
             x += s.width(LD_ACCESS::BAD);
         }
     }

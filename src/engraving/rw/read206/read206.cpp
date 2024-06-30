@@ -1445,6 +1445,7 @@ static void readTuplet206(Tuplet* tuplet, XmlReader& e, ReadContext& ctx)
             tuplet->resetNumberProperty();
             readText206(e, ctx, _number, tuplet);
             _number->setVisible(tuplet->visible());           //?? override saved property
+            _number->setColor(tuplet->color());
             _number->setTrack(tuplet->track());
             // move property flags from _number
             for (auto p : { Pid::FONT_FACE, Pid::FONT_SIZE, Pid::FONT_STYLE, Pid::ALIGN, Pid::SIZE_SPATIUM_DEPENDENT }) {
@@ -2560,7 +2561,7 @@ static void readMeasure206(Measure* m, int staffIdx, XmlReader& e, ReadContext& 
             }
             segment = m->getSegment(st, ctx.tick());
             segment->add(bl);
-            EngravingItem::renderer()->layoutItem(bl);
+            bl->renderer()->layoutItem(bl);
             if (fermataAbove) {
                 segment->add(fermataAbove);
             }
@@ -3293,7 +3294,7 @@ bool Read206::readScore206(Score* score, XmlReader& e, ReadContext& ctx)
                 ctx.setOriginalSpatium(score->style().spatium());
                 score->style().set(Sid::spatium, sp);
             }
-            score->setEngravingFont(engravingFonts()->fontByName(score->style().styleSt(Sid::MusicalSymbolFont).toStdString()));
+            score->setEngravingFont(score->engravingFonts()->fontByName(score->style().styleSt(Sid::MusicalSymbolFont).toStdString()));
         } else if (tag == "copyright" || tag == "rights") {
             Text* text = Factory::createText(score->dummy(), TextStyleType::DEFAULT, false);
             readText206(e, ctx, text, text);

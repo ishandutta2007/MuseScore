@@ -80,12 +80,13 @@ public:
     static AsciiStringView toXml(ClefType v);
     static ClefType fromXml(const AsciiStringView& tag, ClefType def);
 
-    static String translatedUserName(DynamicType v);
     static SymId symId(DynamicType v);
     static DynamicType dynamicType(SymId v);
     static DynamicType dynamicType(const AsciiStringView& string);
-    static AsciiStringView toXml(DynamicType v);
     static bool dynamicValid(const AsciiStringView& tag);
+    static const TranslatableString& userName(DynamicType v);
+    static String translatedUserName(DynamicType v);
+    static AsciiStringView toXml(DynamicType v);
     static DynamicType fromXml(const AsciiStringView& tag, DynamicType def);
     static String translatedUserName(DynamicRange v);
     static String toXml(DynamicRange v);
@@ -187,7 +188,7 @@ public:
     static StringList embellishmentNotes(EmbellishmentType v);
     static size_t embellishmentsCount();
 
-    static const TranslatableString& userName(ChordLineType v, bool straight);
+    static const TranslatableString& userName(ChordLineType v, bool straight, bool wavy);
     static AsciiStringView toXml(ChordLineType v);
     static ChordLineType fromXml(const AsciiStringView& tag, ChordLineType def);
 
@@ -235,6 +236,12 @@ public:
 
     static AsciiStringView toXml(TiePlacement interval);
     static TiePlacement fromXml(const AsciiStringView& str, TiePlacement def);
+
+    static AsciiStringView toXml(VoiceApplication voiceAppl);
+    static VoiceApplication fromXml(const AsciiStringView& str, VoiceApplication def);
+
+    static AsciiStringView toXml(AutoOnOff autoOnOff);
+    static AutoOnOff fromXml(const AsciiStringView& str, AutoOnOff def);
 };
 }
 

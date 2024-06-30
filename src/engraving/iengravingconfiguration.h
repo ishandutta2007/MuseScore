@@ -64,9 +64,7 @@ public:
     virtual Color thumbnailBackgroundColor() const = 0;
     virtual Color noteBackgroundColor() const = 0;
     virtual Color fontPrimaryColor() const = 0;
-
-    virtual Color timeTickAnchorColorLighter() const = 0;
-    virtual Color timeTickAnchorColorDarker() const = 0;
+    virtual Color voiceColor(voice_idx_t voiceIdx) const = 0;
 
     virtual double guiScaling() const = 0;
 
@@ -77,6 +75,9 @@ public:
     virtual bool scoreInversionEnabled() const = 0;
     virtual void setScoreInversionEnabled(bool value) = 0;
     virtual muse::async::Notification scoreInversionChanged() const = 0;
+
+    virtual bool dynamicsApplyToAllVoices() const = 0;
+    virtual void setDynamicsApplyToAllVoices(bool v) = 0;
 
     virtual Color highlightSelectionColor(voice_idx_t voiceIndex = 0) const = 0;
 
@@ -112,6 +113,8 @@ public:
 
     /// these configurations will be removed after solving https://github.com/musescore/MuseScore/issues/14294
     virtual bool guitarProImportExperimental() const = 0;
+    virtual bool useStretchedBends() const = 0;
+    virtual bool shouldAddParenthesisOnStandardStaff() const = 0;
     virtual bool negativeFretsAllowed() const = 0;
     virtual bool crossNoteHeadAlwaysBlack() const = 0;
     virtual bool enableExperimentalFretCircle() const = 0;

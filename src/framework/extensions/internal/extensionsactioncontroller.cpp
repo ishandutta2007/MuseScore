@@ -63,7 +63,7 @@ void ExtensionsActionController::onPluginTriggered(const UriQuery& q)
         return;
     }
 
-    if (m.config.enabled) {
+    if (m.enabled()) {
         provider()->perform(q);
         return;
     }
@@ -74,7 +74,7 @@ void ExtensionsActionController::onPluginTriggered(const UriQuery& q)
         { IInteractive::Button::No, IInteractive::Button::Yes });
 
     if (result.standardButton() == IInteractive::Button::Yes) {
-        provider()->setEnable(q.uri(), true);
+        provider()->setExecPoint(q.uri(), EXEC_MANUALLY);
         provider()->perform(q);
     }
 }
