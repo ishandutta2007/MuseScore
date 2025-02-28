@@ -106,17 +106,27 @@ void PercussionPanelModel::setCurrentPanelMode(const PanelMode::Mode& panelMode)
 
 bool PercussionPanelModel::useNotationPreview() const
 {
-    return m_useNotationPreview;
+    return configuration()->percussionPanelUseNotationPreview();
 }
 
 void PercussionPanelModel::setUseNotationPreview(bool useNotationPreview)
 {
-    if (m_useNotationPreview == useNotationPreview) {
+    if (configuration()->percussionPanelUseNotationPreview() == useNotationPreview) {
         return;
     }
+    configuration()->setPercussionPanelUseNotationPreview(useNotationPreview);
+}
 
-    m_useNotationPreview = useNotationPreview;
-    emit useNotationPreviewChanged(m_useNotationPreview);
+int PercussionPanelModel::notationPreviewNumStaffLines() const
+{
+    if (!interaction()) {
+        return 0;
+    }
+
+    const NoteInputState& inputState = interaction()->noteInput()->state();
+    const Staff* staff = inputState.staff();
+
+    return staff ? staff->lines(inputState.tick()) : 0;
 }
 
 PercussionPanelPadListModel* PercussionPanelModel::padListModel() const
@@ -144,10 +154,10 @@ QList<QVariantMap> PercussionPanelModel::layoutMenuItems() const
 
     QList<QVariantMap> menuItems = {
         { { "id", PAD_NAMES_CODE }, { "title", muse::qtrc("notation/percussion", "Pad names") },
-            { "checkable", true }, { "checked", !m_useNotationPreview }, { "enabled", true } },
+            { "checkable", true }, { "checked", !useNotationPreview() }, { "enabled", true } },
 
         { { "id", NOTATION_PREVIEW_CODE }, { "title", muse::qtrc("notation/percussion", "Notation preview") },
-            { "checkable", true }, { "checked", m_useNotationPreview }, { "enabled", true } },
+            { "checkable", true }, { "checked", useNotationPreview() }, { "enabled", true } },
 
         { }, // separator
 
@@ -245,6 +255,8 @@ void PercussionPanelModel::customizeKit()
 void PercussionPanelModel::setUpConnections()
 {
     const auto updatePadModels = [this](Drumset* drumset) {
+        emit notationPreviewNumStaffLinesChanged();
+
         if (drumset && m_padListModel->drumset() && *drumset == *m_padListModel->drumset()) {
             return;
         }
@@ -301,16 +313,21 @@ void PercussionPanelModel::setUpConnections()
         }
     });
 
-    if (!audioSettings()) {
-        return;
+    if (audioSettings()) {
+        audioSettings()->trackInputParamsChanged().onReceive(this, [this](InstrumentTrackId trackId) {
+            if (trackId != currentTrackId()) {
+                return;
+            }
+            updateSoundTitle(trackId);
+        });
     }
 
-    audioSettings()->trackInputParamsChanged().onReceive(this, [this](InstrumentTrackId trackId) {
-        if (trackId != currentTrackId()) {
-            return;
-        }
-        updateSoundTitle(trackId);
-    });
+    if (configuration()) {
+        configuration()->percussionPanelUseNotationPreviewChanged().onNotify(this, [this]() {
+            const bool useNotationPreview = configuration()->percussionPanelUseNotationPreview();
+            emit useNotationPreviewChanged(useNotationPreview);
+        });
+    }
 }
 
 void PercussionPanelModel::setDrumset(engraving::Drumset* drumset)

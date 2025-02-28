@@ -67,6 +67,7 @@ class PercussionPanelModel : public QObject, public muse::Injectable, public mus
 
     Q_PROPERTY(PanelMode::Mode currentPanelMode READ currentPanelMode WRITE setCurrentPanelMode NOTIFY currentPanelModeChanged)
     Q_PROPERTY(bool useNotationPreview READ useNotationPreview WRITE setUseNotationPreview NOTIFY useNotationPreviewChanged)
+    Q_PROPERTY(int notationPreviewNumStaffLines READ notationPreviewNumStaffLines NOTIFY notationPreviewNumStaffLinesChanged)
 
     Q_PROPERTY(PercussionPanelPadListModel * padListModel READ padListModel NOTIFY padListModelChanged)
 
@@ -86,6 +87,8 @@ public:
 
     bool useNotationPreview() const;
     void setUseNotationPreview(bool useNotationPreview);
+
+    int notationPreviewNumStaffLines() const;
 
     PercussionPanelPadListModel* padListModel() const;
 
@@ -107,6 +110,7 @@ signals:
 
     void currentPanelModeChanged(const PanelMode::Mode& panelMode);
     void useNotationPreviewChanged(bool useNotationPreview);
+    void notationPreviewNumStaffLinesChanged();
 
     void padListModelChanged();
 
@@ -148,7 +152,6 @@ private:
 
     PanelMode::Mode m_currentPanelMode = PanelMode::Mode::WRITE;
     PanelMode::Mode m_panelModeToRestore = PanelMode::Mode::WRITE;
-    bool m_useNotationPreview = false;
 
     PercussionPanelPadListModel* m_padListModel = nullptr;
 };
