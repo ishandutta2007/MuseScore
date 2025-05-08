@@ -1390,12 +1390,12 @@ static void readHarmony114(XmlReader& e, ReadContext& ctx, Harmony* h)
         const AsciiStringView tag(e.name());
         if (tag == "base") {
             if (ctx.mscVersion() >= 106) {
-                h->setBaseTpc(e.readInt());
+                h->setBassTpc(e.readInt());
             } else {
-                h->setBaseTpc(table[e.readInt() - 1]);
+                h->setBassTpc(table[e.readInt() - 1]);
             }
         } else if (tag == "baseCase") {
-            h->setBaseCase(static_cast<NoteCaseType>(e.readInt()));
+            h->setBassCase(static_cast<NoteCaseType>(e.readInt()));
         } else if (tag == "extension") {
             h->setId(e.readInt());
         } else if (tag == "name") {
@@ -1492,7 +1492,6 @@ static void readHarmony114(XmlReader& e, ReadContext& ctx, Harmony* h)
 static void readMeasure(Measure* m, int staffIdx, XmlReader& e, ReadContext& ctx)
 {
     Segment* segment = 0;
-    double _spatium = m->spatium();
 
     std::vector<Chord*> graceNotes;
 
@@ -2101,7 +2100,7 @@ static void readMeasure(Measure* m, int staffIdx, XmlReader& e, ReadContext& ctx
                 spacer->setTrack(staffIdx * VOICES);
                 m->add(spacer);
             }
-            m->vspacerDown(staffIdx)->setGap(Millimetre(e.readDouble() * _spatium));
+            m->vspacerDown(staffIdx)->setGap(Spatium(e.readDouble()));
         } else if (tag == "vspacer" || tag == "vspacerUp") {
             if (!m->vspacerUp(staffIdx)) {
                 Spacer* spacer = Factory::createSpacer(m);
@@ -2109,7 +2108,7 @@ static void readMeasure(Measure* m, int staffIdx, XmlReader& e, ReadContext& ctx
                 spacer->setTrack(staffIdx * VOICES);
                 m->add(spacer);
             }
-            m->vspacerUp(staffIdx)->setGap(Millimetre(e.readDouble() * _spatium));
+            m->vspacerUp(staffIdx)->setGap(Spatium(e.readDouble()));
         } else if (tag == "visible") {
             m->setStaffVisible(staffIdx, e.readInt());
         } else if (tag == "slashStyle") {
@@ -2324,7 +2323,7 @@ static void readStaffContent(Score* score, XmlReader& e, ReadContext& ctx)
                 measure->checkMeasure(staff);
 
                 if (!measure->isMMRest()) {
-                    score->measures()->add(measure);
+                    score->measures()->append(measure);
                     ctx.setLastMeasure(measure);
                     ctx.setTick(measure->tick() + measure->ticks());
                 } else {
@@ -2342,7 +2341,7 @@ static void readStaffContent(Score* score, XmlReader& e, ReadContext& ctx)
                     LOGD("Score::readStaff(): missing measure!");
                     measure = Factory::createMeasure(score->dummy()->system());
                     measure->setTick(ctx.tick());
-                    score->measures()->add(measure);
+                    score->measures()->append(measure);
                 }
                 ctx.setTick(measure->tick());
 
@@ -2364,7 +2363,7 @@ static void readStaffContent(Score* score, XmlReader& e, ReadContext& ctx)
             Box* mb = toBox(Factory::createItemByName(tag, score->dummy()));
             readBox(e, ctx, mb);
             mb->setTick(ctx.tick());
-            score->measures()->add(mb);
+            score->measures()->append(mb);
         } else if (tag == "tick") {
             ctx.setTick(Fraction::fromTicks(score->fileDivision(e.readInt())));
         } else {

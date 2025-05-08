@@ -1758,9 +1758,9 @@ TransposeHarmony::TransposeHarmony(Harmony* h, int rtpc, int btpc)
 void TransposeHarmony::flip(EditData*)
 {
     harmony->realizedHarmony().setDirty(true);   //harmony should be re-realized after transposition
-    int baseTpc1 = harmony->baseTpc();
+    int baseTpc1 = harmony->bassTpc();
     int rootTpc1 = harmony->rootTpc();
-    harmony->setBaseTpc(baseTpc);
+    harmony->setBassTpc(baseTpc);
     harmony->setRootTpc(rootTpc);
     harmony->setXmlText(harmony->harmonyName());
     harmony->render();
@@ -1905,7 +1905,7 @@ ChangeStaff::ChangeStaff(Staff* _staff)
 }
 
 ChangeStaff::ChangeStaff(Staff* _staff, bool _visible, ClefTypeList _clefType,
-                         double _userDist, Staff::HideMode _hideMode, bool _showIfEmpty, bool _cutaway,
+                         Spatium _userDist, Staff::HideMode _hideMode, bool _showIfEmpty, bool _cutaway,
                          bool _hideSystemBarLine, AutoOnOff _mergeMatchingRests, bool _reflectTranspositionInLinkedTab)
 {
     staff       = _staff;
@@ -1928,7 +1928,7 @@ void ChangeStaff::flip(EditData*)
 {
     bool oldVisible = staff->visible();
     ClefTypeList oldClefType = staff->defaultClefType();
-    double oldUserDist   = staff->userDist();
+    Spatium oldUserDist   = staff->userDist();
     Staff::HideMode oldHideMode    = staff->hideWhenEmpty();
     bool oldShowIfEmpty = staff->showIfEmpty();
     bool oldCutaway     = staff->cutaway();
@@ -1938,7 +1938,7 @@ void ChangeStaff::flip(EditData*)
 
     staff->setVisible(visible);
     staff->setDefaultClefType(clefType);
-    staff->setUserDist(Millimetre(userDist));
+    staff->setUserDist(userDist);
     staff->setHideWhenEmpty(hideMode);
     staff->setShowIfEmpty(showIfEmpty);
     staff->setCutaway(cutaway);
@@ -3044,11 +3044,7 @@ Link::Link(EngravingObject* e1, EngravingObject* e2)
     assert(e1->links() == nullptr);
     le = e2->links();
     if (!le) {
-        if (e1->isStaff()) {
-            le = new LinkedObjects(e1->score(), -1);
-        } else {
-            le = new LinkedObjects(e1->score());
-        }
+        le = new LinkedObjects();
         le->push_back(e2);
     }
     e = e1;

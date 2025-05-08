@@ -280,6 +280,13 @@ std::vector<HorizontalSpacing::SegmentPosition> HorizontalSpacing::spaceSegments
         placedSegments.back().xPosInSystemCoords += leadingSpace;
 
         if (curSeg->isChordRestType()) {
+            bool isFirstCROfSystem = curSeg->rtick().isZero() && curSeg->measure()->isFirstInSystem();
+            if (isFirstCROfSystem) {
+                double xMinSystemHeaderDist = ctx.system->leftMargin() + curSeg->style().styleMM(Sid::systemHeaderMinStartOfSystemDistance);
+                placedSegments.back().xPosInSystemCoords = std::max(placedSegments.back().xPosInSystemCoords, xMinSystemHeaderDist);
+                ctx.xCur = std::max(ctx.xCur, xMinSystemHeaderDist);
+            }
+
             double chordRestSegWidth = chordRestSegmentNaturalWidth(curSeg, ctx);
 
             Segment* nextSeg = i < segList.size() - 1 ? segList[i + 1] : nullptr;
@@ -879,11 +886,13 @@ HorizontalSpacing::CrossBeamSpacing HorizontalSpacing::computeCrossBeamSpacing(S
         if (!thisCR->visible() || thisCR->isFullMeasureRest() || (thisCR->isRest() && toRest(thisCR)->isGap())) {
             continue;
         }
-        if (!thisCR->beam()) {
+        Beam* beam = thisCR->beam();
+        if (!beam && thisCR->actualTicks() <= thisSeg->ticks()) {
             canBeAdjusted = false;
+        }
+        if (!beam || (beam->elements().size() == 2 && thisCR->up())) {
             continue;
         }
-        Beam* beam = thisCR->beam();
         for (EngravingItem* ee : nextSeg->elist()) {
             if (!ee || !ee->isChordRest() || !ee->staff()->visible()) {
                 continue;
@@ -1109,6 +1118,7 @@ double HorizontalSpacing::getFirstSegmentXPos(Segment* segment, HorizontalSpacin
         Shape leftBarrier(RectF(0.0, -0.5 * DBL_MAX, 0.0, DBL_MAX));
         x = minLeft(segment, leftBarrier);
         x += style.styleMM(segment->hasAccidentals() ? Sid::barAccidentalDistance : Sid::barNoteDistance);
+        x = std::max(x, style.styleMM(Sid::systemHeaderMinStartOfSystemDistance).val());
         break;
     }
     case SegmentType::Clef:
@@ -1392,6 +1402,11 @@ void HorizontalSpacing::computeNotePadding(const Note* note, const EngravingItem
         padding = std::max(padding, static_cast<double>(style.styleMM(Sid::graceToMainNoteDist)));
     }
 
+    if (!note->fretString().empty() && item2->isNote()) { // This is a TAB fret mark
+        static constexpr double tabFretPaddingIncrease = 1.5; // TODO: style?
+        padding *= tabFretPaddingIncrease;
+    }
+
     if (!item2->isNote()) {
         return;
     }
@@ -1427,7 +1442,7 @@ void HorizontalSpacing::computeNotePadding(const Note* note, const EngravingItem
                 minEndPointsDistance = style.styleMM(Sid::minStraightGlissandoLength);
             }
 
-            double lapPadding = (laPoint1.pos().x() - note->headWidth()) + minEndPointsDistance - laPoint2.pos().x();
+            double lapPadding = (laPoint1.pos().x() - note->width()) + minEndPointsDistance - laPoint2.pos().x();
             lapPadding *= scaling;
 
             padding = std::max(padding, lapPadding);
@@ -1723,7 +1738,7 @@ void HorizontalSpacing::computeHangingLineWidth(const Segment* firstSeg, const S
                     minLength = style.styleMM(Sid::minStraightGlissandoLength);
                 }
 
-                const double notePosX = note->pos().x() + toChord(cr)->pos().x() + note->headWidth() / 2;
+                const double notePosX = note->pos().x() + toChord(cr)->pos().x();
                 const double lineNoteEndPos = (incoming ? width : 0.0) + notePosX + lap.pos().x();
                 const double lineSegEndPos
                     = (incoming ? otherSeg->minRight() + headerLineMargin : width + otherSeg->minLeft() - endSystemMargin);
