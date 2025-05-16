@@ -5616,8 +5616,6 @@ void Score::undoChangeClef(Staff* ostaff, EngravingItem* e, ClefType ct, bool fo
             clef->setParent(destSeg);
             clef->setIsHeader(st == SegmentType::HeaderClef);
             score->doUndoAddElement(clef);
-
-            renderer()->layoutItem(clef);
         }
         if (forInstrumentChange) {
             clef->setForInstrumentChange(true);
@@ -6534,7 +6532,7 @@ void Score::undoAddElement(EngravingItem* element, bool addToLinkedStaves, bool 
                             interval.flip();
                         }
                         int rootTpc = transposeTpc(h->rootTpc(), interval, true);
-                        int baseTpc = transposeTpc(h->baseTpc(), interval, true);
+                        int baseTpc = transposeTpc(h->bassTpc(), interval, true);
                         score->undoTransposeHarmony(h, rootTpc, baseTpc);
                     }
                 }
