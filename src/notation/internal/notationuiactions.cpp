@@ -437,6 +437,13 @@ const UiActionList NotationUiActions::m_actions = {
              TranslatableString("action", "&Implode"),
              TranslatableString("action", "Implode")
              ),
+    UiAction("add-fretboard-diagram",
+             mu::context::UiCtxProjectOpened,
+             mu::context::CTX_NOTATION_OPENED,
+             TranslatableString("action", "Add &fretboard diagram"),
+             TranslatableString("action", "Add fretboard diagram"),
+             IconCode::Code::FRETBOARD_DIAGRAM
+             ),
     UiAction("realize-chord-symbols",
              mu::context::UiCtxProjectOpened,
              mu::context::CTX_NOTATION_OPENED,
@@ -2611,6 +2618,13 @@ const UiActionList NotationUiActions::m_engravingDebuggingActions = {
              mu::context::CTX_NOTATION_OPENED,
              TranslatableString("action", "Show element masks"),
              TranslatableString("action", "Show/hide element masks"),
+             Checkable::Yes
+             ),
+    UiAction("show-line-attach-points",
+             mu::context::UiCtxProjectOpened,
+             mu::context::CTX_NOTATION_OPENED,
+             TranslatableString("action", "Show line-attach points"),
+             TranslatableString("action", "Show/hide line-attach points"),
              Checkable::Yes
              ),
     UiAction("mark-corrupted-measures",
