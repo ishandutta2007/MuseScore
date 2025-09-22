@@ -5,7 +5,7 @@
  * MuseScore
  * Music Composition & Notation
  *
- * Copyright (C) 2021 MuseScore BVBA and others
+ * Copyright (C) 2025 MuseScore BVBA and others
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as
@@ -19,35 +19,25 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-#pragma once
+import Muse.Ui
+import Muse.UiComponents
 
-#include <memory>
+StyledDialogView {
+    id: root
 
-namespace muse {
-class GlobalModule;
-}
+    title: "Diagnostic: Engraving style options list"
 
-namespace muse::audio::rpc {
-class IRpcChannel;
-}
+    contentHeight: 900
+    contentWidth: 500
+    resizable: true
 
-namespace muse::audio::worker {
-class StartWorkerController;
-}
+    //! NOTE It is necessary that it can be determined that this is an object for diagnostics
+    contentItem.objectName: panel.objectName
 
-namespace muse::web::worker {
-class WebWorkerApi
-{
-public:
+    margins: 12
 
-    static WebWorkerApi* instance();
-
-    void init();
-
-private:
-    WebWorkerApi() = default;
-
-    std::shared_ptr<audio::rpc::IRpcChannel> m_rpcChannel;
-    std::shared_ptr<audio::worker::StartWorkerController> m_startWorkerController;
-};
+    EngravingStylePanel {
+        id: panel
+        anchors.fill: parent
+    }
 }
